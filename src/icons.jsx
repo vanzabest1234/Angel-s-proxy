@@ -110,6 +110,38 @@ const PATHS = {
       <path d="M12 4l1.8 4.7L18.5 10l-4.7 1.8L12 16.5l-1.8-4.7L5.5 10l4.7-1.3Z" />
     </g>
   ),
+  menu: (
+    <g {...STROKE}>
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </g>
+  ),
+  star: (
+    <g {...STROKE}>
+      <path d="m12 4 2.4 5.1 5.6.7-4.1 3.9 1 5.5-4.9-2.7-4.9 2.7 1-5.5L4 9.8l5.6-.7Z" />
+    </g>
+  ),
+  check: (
+    <g {...STROKE}>
+      <path d="m5 12.5 4.5 4.5L19 7" />
+    </g>
+  ),
+  chevronDown: (
+    <g {...STROKE}>
+      <path d="m6 9.5 6 6 6-6" />
+    </g>
+  ),
+  play: (
+    <g {...STROKE}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m10 8.6 5.6 3.4-5.6 3.4Z" />
+    </g>
+  ),
+  news: (
+    <g {...STROKE}>
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+      <path d="M7 9.5h6M7 13h10M16 9.5h1" />
+    </g>
+  ),
 }
 
 export default function Icon({ name, size = 16, className = '', title }) {

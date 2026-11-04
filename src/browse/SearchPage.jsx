@@ -1,11 +1,32 @@
 import { useEffect, useState } from 'react'
-import { EngineMark, engineName } from '../icons.jsx'
+import Icon, { EngineMark, engineName } from '../icons.jsx'
 import '../styles/search.css'
+
+const TABS = [
+  { id: 'all', label: 'All', icon: 'search' },
+  { id: 'images', label: 'Images', icon: 'image' },
+  { id: 'videos', label: 'Videos', icon: 'play' },
+  { id: 'news', label: 'News', icon: 'news' },
+  { id: 'more', label: 'More', icon: null },
+]
+
+const FILTERS = [
+  { label: 'Private', checked: true },
+  { label: 'All regions' },
+  { label: 'Safe search: moderate' },
+  { label: 'Any time' },
+]
+
+const FEEDBACK = {
+  ddg: 'https://duckduckgo.com/feedback',
+  brave: 'https://search.brave.com',
+}
 
 export default function SearchPage() {
   const params = new URLSearchParams(window.location.search)
   const engine = params.get('engine') === 'brave' ? 'brave' : 'ddg'
   const query = (params.get('q') || '').trim()
+  const [draft, setDraft] = useState(query)
   const [state, setState] = useState({ status: query ? 'loading' : 'idle', data: null, error: null })
 
   useEffect(() => {
@@ -14,6 +35,10 @@ export default function SearchPage() {
     document.title = query ? `${query} — ${engineName(engine)}` : engineName(engine)
     return () => document.body.classList.remove('search-route')
   }, [engine, query])
+
+  useEffect(() => {
+    setDraft(query)
+  }, [query])
 
   useEffect(() => {
     if (!query) {
@@ -45,29 +70,100 @@ export default function SearchPage() {
     }
   }, [engine, query])
 
-  function runRelated(nextQuery) {
-    window.parent?.postMessage({ type: 'angel:search', engine, q: nextQuery }, '*')
+  // The frame cannot change the address bar itself, so a search typed in the
+  // page is handed to the desktop app, which runs it through the same history.
+  function runSearch(value) {
+    const next = value.trim()
+    if (!next) return
+    window.parent?.postMessage({ type: 'angel:search', engine, q: next }, '*')
   }
 
   return (
     <div className="search-page" data-engine={engine}>
-      <header className="sp-bar">
-        <EngineMark engine={engine} size={22} />
-        <span className="sp-name">{engineName(engine)}</span>
-        <span className="sp-tag">{engine === 'ddg' ? 'Instant answers' : 'Web results'}</span>
+      <header className="sp-header">
+        <div className="sp-brand">
+          <EngineMark engine={engine} size={30} />
+          <span className="sp-name">{engineName(engine)}</span>
+        </div>
+
+        <form
+          className="sp-search"
+          onSubmit={(event) => {
+            event.preventDefault()
+            runSearch(draft)
+          }}
+        >
+          <input
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder="Search privately"
+            aria-label="Search"
+            data-testid="sp-input"
+          />
+          <button type="submit" aria-label="Search" title="Search" data-testid="sp-submit">
+            <Icon name="search" size={16} />
+          </button>
+        </form>
+
+        <div className="sp-utility">
+          <span className="sp-tagline">
+            {engine === 'ddg' ? 'Protection. Privacy. Peace of mind.' : 'Independent, private results.'}
+          </span>
+          <Icon name="menu" size={18} />
+        </div>
       </header>
 
+      <nav className="sp-tabs" aria-label="Result types">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className="sp-tab"
+            aria-current={tab.id === 'all' ? 'page' : undefined}
+            disabled={tab.id !== 'all'}
+            title={tab.id === 'all' ? undefined : 'Only web results are available'}
+          >
+            {tab.icon ? <Icon name={tab.icon} size={14} /> : null}
+            {tab.label}
+            {tab.id === 'more' ? <Icon name="chevronDown" size={12} /> : null}
+          </button>
+        ))}
+
+        <div className="sp-tools">
+          <span className="sp-tool">
+            <Icon name="star" size={13} />
+            Search Assist
+          </span>
+          <span className="sp-tool">
+            <Icon name="sparkle" size={13} />
+            Duck.ai
+          </span>
+          <span className="sp-tool sp-tool-icon">
+            <Icon name="settings" size={14} />
+          </span>
+        </div>
+      </nav>
+
+      <div className="sp-filters">
+        {FILTERS.map((filter) => (
+          <span key={filter.label} className="sp-filter">
+            {filter.checked ? <Icon name="check" size={12} className="sp-check" /> : null}
+            {filter.label}
+            <Icon name="chevronDown" size={11} />
+          </span>
+        ))}
+      </div>
+
       <main className="sp-main">
-        {query ? <h1 className="sp-query">{query}</h1> : null}
         {state.status === 'loading' ? <Skeleton /> : null}
         {state.status === 'error' ? <ErrorState error={state.error} engine={engine} /> : null}
-        {state.status === 'done' ? <Results data={state.data} onRelated={runRelated} /> : null}
+        {state.status === 'done' ? <Results data={state.data} onRelated={runSearch} /> : null}
         {state.status === 'idle' ? <p className="sp-note">Type a search in the address bar above.</p> : null}
       </main>
 
-      <footer className="sp-footer">
-        {engineName(engine)} blocks direct embedding, so Angel Desktop renders its results inside this frame.
-      </footer>
+      <a className="sp-feedback" href={FEEDBACK[engine]} target="_blank" rel="noreferrer noopener">
+        Share Feedback
+      </a>
     </div>
   )
 }
@@ -84,12 +180,17 @@ function Results({ data, onRelated }) {
         <ol className="sp-results">
           {results.map((item, position) => (
             <li className="sp-result" key={`${item.url}-${position}`}>
+              <span className="sp-result-site">
+                <span className="sp-favicon" aria-hidden="true">
+                  {(siteOf(item.url) || '?').slice(0, 1).toUpperCase()}
+                </span>
+                {siteOf(item.url)}
+              </span>
+              <span className="sp-result-url">{breadcrumb(item.url)}</span>
               <a className="sp-result-title" href={item.url} target="_blank" rel="noreferrer noopener">
                 {item.title || item.url}
               </a>
-              <span className="sp-result-url">{prettyUrl(item.url)}</span>
               {item.snippet ? <p className="sp-result-snippet">{item.snippet}</p> : null}
-              {item.source ? <span className="sp-result-source">{item.source}</span> : null}
             </li>
           ))}
         </ol>
@@ -146,10 +247,30 @@ function Skeleton() {
   )
 }
 
-function prettyUrl(value) {
+function hostOf(value) {
+  try {
+    return new URL(value).hostname.replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+}
+
+// Short site name for the result header: "en.wikipedia.org" -> "wikipedia.org".
+function siteOf(value) {
+  const host = hostOf(value)
+  const parts = host.split('.')
+  if (parts.length <= 2) return host
+  const secondLevel = parts[parts.length - 2]
+  const keep = ['co', 'com', 'org', 'net', 'gov', 'ac'].includes(secondLevel) ? 3 : 2
+  return parts.slice(-keep).join('.')
+}
+
+function breadcrumb(value) {
   try {
     const url = new URL(value)
-    return `${url.hostname.replace(/^www\./, '')}${url.pathname === '/' ? '' : url.pathname}`
+    const parts = url.pathname.split('/').filter(Boolean)
+    const path = parts.length ? ` › ${parts.slice(0, 3).join(' › ')}` : ''
+    return `${url.protocol}//${url.host}${path}`
   } catch {
     return value
   }
