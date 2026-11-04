@@ -48,16 +48,21 @@ export function DesktopProvider({ children }) {
         )
       }
       const offset = list.length * 28
+      // Keep windows inside smaller viewports.
+      const w = Math.min(meta.width, Math.max(420, window.innerWidth - 80))
+      const h = Math.min(meta.height, Math.max(300, window.innerHeight - 140))
+      const x = Math.min(132 + offset, Math.max(12, window.innerWidth - w - 12))
+      const y = Math.min(64 + offset, Math.max(12, window.innerHeight - h - 76))
       return [
         ...list,
         {
           id: `win-${nextId.current++}`,
           app: appId,
           title: meta.title,
-          x: 132 + offset,
-          y: 64 + offset,
-          w: meta.width,
-          h: meta.height,
+          x,
+          y,
+          w,
+          h,
           z: (nextZ.current += 1),
           minimized: false,
           maximized: false,

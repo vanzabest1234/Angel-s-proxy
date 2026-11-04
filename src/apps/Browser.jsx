@@ -4,6 +4,32 @@ import Icon, { EngineMark, engineName } from '../icons.jsx'
 
 const ENGINES = ['ddg', 'brave']
 
+const QUICK_LINKS = [
+  { label: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Web_browser' },
+  { label: 'Hacker News', url: 'https://news.ycombinator.com/' },
+  { label: 'example.com', url: 'https://example.com/' },
+]
+
+function toUrl(value) {
+  const text = value.trim()
+  if (!text || /\s/.test(text)) return null
+  if (/^https?:\/\//i.test(text)) return text
+  if (/^[\w-]+(\.[\w-]+)+(\/|$|\?|#|:)/.test(text)) return `https://${text}`
+  return null
+}
+
+function entryTitle(entry) {
+  if (!entry) return 'New tab'
+  if (entry.kind === 'url') {
+    try {
+      return new URL(entry.url).hostname.replace(/^www\./, '')
+    } catch {
+      return entry.url
+    }
+  }
+  return entry.q
+}
+
 export default function Browser() {
   const { settings, updateSettings } = useDesktop()
   const [engine, setEngine] = useState(settings.engine === 'brave' ? 'brave' : 'ddg')
@@ -15,24 +41,40 @@ export default function Browser() {
 
   const current = index >= 0 ? entries[index] : null
 
+  function pushEntry(entry) {
+    setEntries((list) => [...list.slice(0, index + 1), entry])
+    setIndex((value) => value + 1)
+    setDraft(entry.kind === 'url' ? entry.url : entry.q)
+  }
+
   function search(rawQuery, nextEngine = engine) {
     const q = rawQuery.trim()
     if (!q) return
-    setEntries((list) => [...list.slice(0, index + 1), { q, engine: nextEngine }])
-    setIndex((value) => value + 1)
-    setDraft(q)
+    pushEntry({ kind: 'search', q, engine: nextEngine })
+  }
+
+  function openUrl(url) {
+    pushEntry({ kind: 'url', url })
+  }
+
+  function submitInput(raw) {
+    const asUrl = toUrl(raw)
+    if (asUrl) openUrl(asUrl)
+    else search(raw)
   }
 
   // The results frame asks the desktop to run a related search, so the
   // address bar, history and frame stay in sync.
-  const searchRef = useRef(search)
-  searchRef.current = search
+  const submitRef = useRef(submitInput)
+  submitRef.current = submitInput
 
   useEffect(() => {
     function onMessage(event) {
       const data = event.data
-      if (!data || data.type !== 'angel:search' || typeof data.q !== 'string') return
-      searchRef.current(data.q, data.engine === 'brave' ? 'brave' : 'ddg')
+      if (!data || typeof data !== 'object') return
+      if (data.type === 'angel:search' && typeof data.q === 'string') {
+        submitRef.current(data.q)
+      }
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
@@ -45,8 +87,9 @@ export default function Browser() {
   function step(delta) {
     const nextIndex = index + delta
     if (nextIndex < 0 || nextIndex >= entries.length) return
+    const entry = entries[nextIndex]
     setIndex(nextIndex)
-    setDraft(entries[nextIndex].q)
+    setDraft(entry.kind === 'url' ? entry.url : entry.q)
   }
 
   function newTab() {
@@ -59,19 +102,21 @@ export default function Browser() {
   function chooseEngine(nextEngine) {
     setEngine(nextEngine)
     updateSettings({ engine: nextEngine })
-    if (current) search(current.q, nextEngine)
+    if (current?.kind === 'search') search(current.q, nextEngine)
   }
 
-  const frameSrc = current
-    ? `/search?engine=${current.engine}&q=${encodeURIComponent(current.q)}`
-    : null
+  const frameSrc = !current
+    ? null
+    : current.kind === 'url'
+      ? `/api/page?url=${encodeURIComponent(current.url)}`
+      : `/search?engine=${current.engine}&q=${encodeURIComponent(current.q)}`
 
   return (
     <div className="browser">
       <div className="tabstrip">
         <div className="tab">
           <Icon name="globe" size={13} />
-          <span className="tab-title">{current ? current.q : 'New tab'}</span>
+          <span className="tab-title">{entryTitle(current)}</span>
           <button type="button" className="tab-close" aria-label="Close tab" onClick={newTab}>
             <Icon name="close" size={11} />
           </button>
@@ -85,7 +130,7 @@ export default function Browser() {
         className="browser-toolbar"
         onSubmit={(event) => {
           event.preventDefault()
-          search(draft)
+          submitInput(draft)
         }}
       >
         <div className="browser-nav">
@@ -119,16 +164,16 @@ export default function Browser() {
         </div>
 
         <label className="address-form">
-          <Icon name="search" size={14} />
+          <Icon name={current?.kind === 'url' ? 'globe' : 'search'} size={14} />
           <input
             ref={inputRef}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder={`Search ${engineName(engine)}`}
-            aria-label="Search"
+            placeholder="Search or enter a web address"
+            aria-label="Search or address"
             data-testid="address-input"
           />
-          <button type="submit" className="address-go" aria-label="Search" title="Search" data-testid="address-go">
+          <button type="submit" className="address-go" aria-label="Go" title="Go" data-testid="address-go">
             <Icon name="forward" size={14} />
           </button>
         </label>
@@ -151,38 +196,46 @@ export default function Browser() {
       </form>
 
       <div className="browser-page">
+        {current?.kind === 'url' ? (
+          <div className="page-notice">
+            <span>Read-only view — scripts are off so the page can’t reach Angel Desktop.</span>
+            <a href={current.url} target="_blank" rel="noreferrer noopener">
+              Open original
+            </a>
+          </div>
+        ) : null}
+
         {frameSrc ? (
           <iframe
             key={`${frameSrc}-${reloadKey}`}
             className="browser-frame"
-            title={`${engineName(current.engine)} results`}
+            title={entryTitle(current)}
             src={frameSrc}
             data-testid="results-frame"
           />
         ) : (
-          <NewTab engine={engine} onSearch={search} onPickEngine={chooseEngine} />
+          <NewTab engine={engine} onSubmit={submitInput} onPickEngine={chooseEngine} />
         )}
       </div>
     </div>
   )
 }
 
-function NewTab({ engine, onSearch, onPickEngine }) {
+function NewTab({ engine, onSubmit, onPickEngine }) {
   const [value, setValue] = useState('')
 
   return (
     <div className="newtab">
       <h1>Search the web</h1>
       <p className="newtab-sub">
-        DuckDuckGo and Brave both refuse to load inside a frame, so their results render in this frame
-        instead.
+        Search with DuckDuckGo or Brave, or type any web address to open it here.
       </p>
 
       <form
         className="newtab-search"
         onSubmit={(event) => {
           event.preventDefault()
-          onSearch(value, engine)
+          onSubmit(value)
         }}
       >
         <Icon name="search" size={16} />
@@ -190,14 +243,28 @@ function NewTab({ engine, onSearch, onPickEngine }) {
           autoFocus
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder={`Search with ${engineName(engine)}`}
-          aria-label="Search query"
+          placeholder="Search or enter a web address"
+          aria-label="Search or address"
           data-testid="newtab-input"
         />
-        <button type="submit" className="newtab-go" aria-label="Search" title="Search" data-testid="newtab-go">
+        <button type="submit" className="newtab-go" aria-label="Go" title="Go" data-testid="newtab-go">
           <Icon name="forward" size={16} />
         </button>
       </form>
+
+      <div className="newtab-links">
+        {QUICK_LINKS.map((link) => (
+          <button
+            key={link.url}
+            type="button"
+            className="newtab-link"
+            onClick={() => onSubmit(link.url)}
+            data-testid={`quick-${link.label.toLowerCase().replace(/[^a-z]/g, '')}`}
+          >
+            {link.label}
+          </button>
+        ))}
+      </div>
 
       <div className="newtab-engines">
         {ENGINES.map((id) => (

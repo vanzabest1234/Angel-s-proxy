@@ -1,5 +1,6 @@
 import http from 'node:http'
 import { searchBrave, searchDuckDuckGo } from './engines.mjs'
+import { loadPage, renderErrorPage } from './proxy.mjs'
 
 const PORT = Number(process.env.PORT || 8000)
 const BRAVE_KEY = (process.env.BRAVE_SEARCH_API_KEY || '').trim()
@@ -45,6 +46,31 @@ const server = http.createServer(async (req, res) => {
       const status = code === 'missing_key' || code === 'invalid_key' ? 400 : 502
       console.warn(`[search:${engine}] ${code}: ${error.message}`)
       sendJson(res, status, { error: code, message: error.message })
+    }
+    return
+  }
+
+  if (url.pathname === '/api/page') {
+    const target = url.searchParams.get('url') || ''
+    try {
+      const page = await loadPage(target)
+      res.writeHead(page.status, {
+        'content-type': page.contentType,
+        'content-length': page.body.length,
+        'cache-control': 'no-store',
+      })
+      res.end(page.body)
+    } catch (error) {
+      const code = error.code || 'upstream'
+      console.warn(`[page] ${code}: ${error.message}`)
+      const title = code === 'bad_url' ? 'Not a web address' : code === 'blocked_target' ? 'Blocked address' : 'Page unavailable'
+      const body = Buffer.from(renderErrorPage(title, error.message, /^https?:/i.test(target) ? target : ''))
+      res.writeHead(code === 'bad_url' || code === 'blocked_target' ? 400 : 502, {
+        'content-type': 'text/html; charset=utf-8',
+        'content-length': body.length,
+        'cache-control': 'no-store',
+      })
+      res.end(body)
     }
     return
   }
