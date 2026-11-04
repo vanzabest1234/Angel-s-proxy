@@ -27,14 +27,21 @@ renders that engine's results inside the page frame, with the engine's brand and
 - **Brave** — Brave Search API. Needs a free subscription token stored as `BRAVE_SEARCH_API_KEY`
   (see `.base44/environment.json`). Without the key the Brave page explains how to add one.
 
+DuckDuckGo returns its real web result list, scraped server-side from `duckduckgo.com/html/`
+(`html.duckduckgo.com/html/` as a second attempt). DuckDuckGo throttles datacenter traffic, so when
+both attempts are challenged the same query falls back to Bing's organic results — the page says
+which one answered. Clicking a result opens it inside the browser window through the page proxy;
+ctrl/cmd-click opens the original site in a new tab.
+
 ## Opening web addresses
 
 The address bar accepts a URL as well as a query: type `wikipedia.org` or `news.ycombinator.com`
 and the page opens inside the browser frame. Because almost every site refuses to be framed, the
 API service fetches the page at `GET /api/page?url=…`, injects a `<base href>` so the page's own
 styles and images load, and strips the site's scripts and inline handlers — so a remote page can
-never touch Angel Desktop's origin, storage or settings. Pages therefore render read-only; the
-browser shows a notice with an "Open original" link.
+never touch Angel Desktop's origin, storage or settings. Pages therefore render read-only (a
+JavaScript-driven site such as YouTube shows its bare skeleton), and the browser shows a notice with
+an "Open original" link for the full site.
 
 Local and private addresses (`localhost`, `127.0.0.1`, `10.*`, `192.168.*`, …) are rejected, and
 unreachable or invalid addresses get a styled error page inside the frame.

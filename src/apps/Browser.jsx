@@ -67,6 +67,8 @@ export default function Browser() {
   // address bar, history and frame stay in sync.
   const submitRef = useRef(submitInput)
   submitRef.current = submitInput
+  const openRef = useRef(openUrl)
+  openRef.current = openUrl
 
   useEffect(() => {
     function onMessage(event) {
@@ -74,6 +76,9 @@ export default function Browser() {
       if (!data || typeof data !== 'object') return
       if (data.type === 'angel:search' && typeof data.q === 'string') {
         submitRef.current(data.q)
+      }
+      if (data.type === 'angel:open' && typeof data.url === 'string') {
+        openRef.current(data.url)
       }
     }
     window.addEventListener('message', onMessage)
@@ -198,7 +203,10 @@ export default function Browser() {
       <div className="browser-page">
         {current?.kind === 'url' ? (
           <div className="page-notice">
-            <span>Read-only view — scripts are off so the page can’t reach Angel Desktop.</span>
+            <span>
+              Read-only view — scripts are off, so sites that need JavaScript (like YouTube) may look
+              empty here.
+            </span>
             <a href={current.url} target="_blank" rel="noreferrer noopener">
               Open original
             </a>

@@ -78,6 +78,12 @@ export default function SearchPage() {
     window.parent?.postMessage({ type: 'angel:search', engine, q: next }, '*')
   }
 
+  // Result links open inside the browser window, where the page proxy can
+  // display sites that refuse to be framed.
+  function openResult(url) {
+    window.parent?.postMessage({ type: 'angel:open', url }, '*')
+  }
+
   return (
     <div className="search-page" data-engine={engine}>
       <header className="sp-header">
@@ -157,7 +163,9 @@ export default function SearchPage() {
       <main className="sp-main">
         {state.status === 'loading' ? <Skeleton /> : null}
         {state.status === 'error' ? <ErrorState error={state.error} engine={engine} /> : null}
-        {state.status === 'done' ? <Results data={state.data} onRelated={runSearch} /> : null}
+        {state.status === 'done' ? (
+          <Results data={state.data} onRelated={runSearch} onOpen={openResult} />
+        ) : null}
         {state.status === 'idle' ? <p className="sp-note">Type a search in the address bar above.</p> : null}
       </main>
 
@@ -168,7 +176,7 @@ export default function SearchPage() {
   )
 }
 
-function Results({ data, onRelated }) {
+function Results({ data, onRelated, onOpen }) {
   const results = data.results || []
   const related = data.related || []
 
@@ -187,7 +195,17 @@ function Results({ data, onRelated }) {
                 {siteOf(item.url)}
               </span>
               <span className="sp-result-url">{breadcrumb(item.url)}</span>
-              <a className="sp-result-title" href={item.url} target="_blank" rel="noreferrer noopener">
+              <a
+                className="sp-result-title"
+                href={item.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                onClick={(event) => {
+                  if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return
+                  event.preventDefault()
+                  onOpen(item.url)
+                }}
+              >
                 {item.title || item.url}
               </a>
               {item.snippet ? <p className="sp-result-snippet">{item.snippet}</p> : null}
