@@ -1,0 +1,13 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "BRAVE_SEARCH_API_KEY",
+      "description": "Brave Search API subscription token from https://api.search.brave.com/app/keys (free tier). Enables full web results for the Brave engine; DuckDuckGo works without it.",
+      "requiredAtBoot": false,
+      "generatedForDevelopment": false
+    }
+  ]
+}
