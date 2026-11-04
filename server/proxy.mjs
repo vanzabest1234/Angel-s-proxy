@@ -42,18 +42,14 @@ function escapeHtml(value = '') {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-// Pages are served read-only: scripts and inline handlers are removed so a
-// remote page can never touch Angel Desktop's own origin.
+// Pages keep their scripts and inline handlers so real sites work inside the
+// frame. The browser mounts proxied pages in a sandboxed iframe (opaque
+// origin), so remote script can never touch Angel Desktop's own origin.
 function prepareHtml(html, finalUrl) {
   const base = `<base href="${escapeAttr(finalUrl)}">`
   let output = html
     .replace(/<meta[^>]+http-equiv=["']?refresh["']?[^>]*>/gi, '')
     .replace(/<meta[^>]+http-equiv=["']?content-security-policy["']?[^>]*>/gi, '')
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<script\b[^>]*\/?>/gi, '')
-    .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, '')
-    .replace(/\son[a-z]+\s*=\s*'[^']*'/gi, '')
-    .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1=$2#$2')
 
   output = /<head[^>]*>/i.test(output)
     ? output.replace(/<head([^>]*)>/i, `<head$1>${base}`)

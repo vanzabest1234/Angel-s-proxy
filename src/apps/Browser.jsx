@@ -201,24 +201,19 @@ export default function Browser() {
       </form>
 
       <div className="browser-page">
-        {current?.kind === 'url' ? (
-          <div className="page-notice">
-            <span>
-              Read-only view — scripts are off, so sites that need JavaScript (like YouTube) may look
-              empty here.
-            </span>
-            <a href={current.url} target="_blank" rel="noreferrer noopener">
-              Open original
-            </a>
-          </div>
-        ) : null}
-
         {frameSrc ? (
           <iframe
             key={`${frameSrc}-${reloadKey}`}
             className="browser-frame"
             title={entryTitle(current)}
             src={frameSrc}
+            // Proxied pages keep their scripts, so they run in a sandbox on an
+            // opaque origin and cannot reach the desktop's own storage.
+            sandbox={
+              current?.kind === 'url'
+                ? 'allow-scripts allow-forms allow-popups allow-modals allow-downloads'
+                : undefined
+            }
             data-testid="results-frame"
           />
         ) : (

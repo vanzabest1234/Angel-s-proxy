@@ -37,11 +37,13 @@ ctrl/cmd-click opens the original site in a new tab.
 
 The address bar accepts a URL as well as a query: type `wikipedia.org` or `news.ycombinator.com`
 and the page opens inside the browser frame. Because almost every site refuses to be framed, the
-API service fetches the page at `GET /api/page?url=…`, injects a `<base href>` so the page's own
-styles and images load, and strips the site's scripts and inline handlers — so a remote page can
-never touch Angel Desktop's origin, storage or settings. Pages therefore render read-only (a
-JavaScript-driven site such as YouTube shows its bare skeleton), and the browser shows a notice with
-an "Open original" link for the full site.
+API service fetches the page at `GET /api/page?url=…` and injects a `<base href>` so the page's own
+styles, images and scripts load.
+
+Pages keep their scripts and inline handlers, so JavaScript-driven sites are interactive. The frame
+mounts proxied pages with a `sandbox` attribute (no `allow-same-origin`), which gives them an opaque
+origin: their script runs, but it cannot reach Angel Desktop's origin, storage or settings. A site
+that hard-requires first-party cookies or storage may still misbehave.
 
 Local and private addresses (`localhost`, `127.0.0.1`, `10.*`, `192.168.*`, …) are rejected, and
 unreachable or invalid addresses get a styled error page inside the frame.
