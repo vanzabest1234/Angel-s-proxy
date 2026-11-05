@@ -118,6 +118,7 @@ function renderBrowser(body) {
   let history = [{ type: 'home' }];
   let index = 0;
   let current = null;
+  let frameToken = null;
 
   const home = () => {
     current = null;
@@ -190,13 +191,15 @@ function renderBrowser(body) {
     }
   };
 
-  const visit = (url, src) => {
+  const visit = (url, view) => {
     current = url;
     input.value = url;
+    frameToken = `f${Date.now()}${Math.random().toString(36).slice(2, 7)}`;
+    const target = view || `/proxy?url=${encodeURIComponent(url)}&t=${frameToken}`;
     const label = esc(url.replace(/^https?:\/\//, ''));
     page.innerHTML = `
-      <div class="browser-frame"><iframe src="${attr(src || `/proxy?url=${encodeURIComponent(url)}`)}" title="${attr(url)}" sandbox="allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe></div>
-      <div class="browser-note">${src ? 'Text-only view.' : "Loaded through Angel's proxy."} <a href="${attr(url)}" target="_blank" rel="noopener noreferrer">Open ${label} in a new tab &#8599;</a></div>`;
+      <div class="browser-frame"><iframe src="${attr(target)}" title="${attr(url)}" sandbox="allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe></div>
+      <div class="browser-note">${view ? 'Text-only view.' : "Loaded through Angel's proxy."} <a href="${attr(url)}" target="_blank" rel="noopener noreferrer">Open ${label} in a new tab &#8599;</a></div>`;
   };
 
   const noRender = () => {
@@ -204,11 +207,11 @@ function renderBrowser(body) {
     page.innerHTML = `
       <div class="browser-blank">
         <h2>${label} didn't render in the window</h2>
-        <p>The site needs its own app or blocks embedded viewing, so it came back empty. Read it as text here, or open it in a real tab.</p>
+        <p>Sites like YouTube, Reddit or Google Search only run inside their own app, so the page came back empty. You can open it in a real tab, or read the page as text here.</p>
         <div class="browser-blank-actions">
+          <a class="blank-link" href="${attr(current)}" target="_blank" rel="noopener noreferrer">Open in a new tab &#8599;</a>
           <button type="button" class="blank-btn" data-blank="text">Show text-only view</button>
           <button type="button" class="blank-btn" data-blank="retry">Try again</button>
-          <a class="blank-link" href="${attr(current)}" target="_blank" rel="noopener noreferrer">Open in a new tab &#8599;</a>
         </div>
       </div>`;
     page.querySelector('[data-blank="text"]').addEventListener('click', () => visit(current, `/text?url=${encodeURIComponent(current)}`));
@@ -218,7 +221,7 @@ function renderBrowser(body) {
   window.addEventListener('message', (event) => {
     const data = event.data || {};
     if (typeof data.angelNavigate === 'string' && /^https?:/i.test(data.angelNavigate)) push({ type: 'url', url: data.angelNavigate });
-    else if (data.angelBlank && data.angelBlank === current) noRender();
+    else if (data.angelBlank && data.angelBlank === frameToken) noRender();
   });
 
   const show = (entry) => {
