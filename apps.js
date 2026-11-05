@@ -117,8 +117,10 @@ function renderBrowser(body) {
   const input = body.querySelector('.url');
   let history = [{ type: 'home' }];
   let index = 0;
+  let current = null;
 
   const home = () => {
+    current = null;
     input.value = '';
     page.innerHTML = `
       <div class="ddg-home">
@@ -143,6 +145,7 @@ function renderBrowser(body) {
   };
 
   const search = async (query) => {
+    current = null;
     input.value = query;
     page.innerHTML = `<div class="ddg-results"><p class="app-loading">Searching DuckDuckGo for “${esc(query)}”…</p></div>`;
     try {
@@ -187,17 +190,35 @@ function renderBrowser(body) {
     }
   };
 
-  const visit = (url) => {
+  const visit = (url, src) => {
+    current = url;
     input.value = url;
     const label = esc(url.replace(/^https?:\/\//, ''));
     page.innerHTML = `
-      <div class="browser-frame"><iframe src="/proxy?url=${encodeURIComponent(url)}" title="${attr(url)}" sandbox="allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe></div>
-      <div class="browser-note">Loaded through Angel's proxy. <a href="${attr(url)}" target="_blank" rel="noopener noreferrer">Open ${label} in a new tab &#8599;</a></div>`;
+      <div class="browser-frame"><iframe src="${attr(src || `/proxy?url=${encodeURIComponent(url)}`)}" title="${attr(url)}" sandbox="allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe></div>
+      <div class="browser-note">${src ? 'Text-only view.' : "Loaded through Angel's proxy."} <a href="${attr(url)}" target="_blank" rel="noopener noreferrer">Open ${label} in a new tab &#8599;</a></div>`;
+  };
+
+  const noRender = () => {
+    const label = esc(current.replace(/^https?:\/\//, ''));
+    page.innerHTML = `
+      <div class="browser-blank">
+        <h2>${label} didn't render in the window</h2>
+        <p>The site needs its own app or blocks embedded viewing, so it came back empty. Read it as text here, or open it in a real tab.</p>
+        <div class="browser-blank-actions">
+          <button type="button" class="blank-btn" data-blank="text">Show text-only view</button>
+          <button type="button" class="blank-btn" data-blank="retry">Try again</button>
+          <a class="blank-link" href="${attr(current)}" target="_blank" rel="noopener noreferrer">Open in a new tab &#8599;</a>
+        </div>
+      </div>`;
+    page.querySelector('[data-blank="text"]').addEventListener('click', () => visit(current, `/text?url=${encodeURIComponent(current)}`));
+    page.querySelector('[data-blank="retry"]').addEventListener('click', () => visit(current, null));
   };
 
   window.addEventListener('message', (event) => {
-    const next = event.data && event.data.angelNavigate;
-    if (typeof next === 'string' && /^https?:/i.test(next)) push({ type: 'url', url: next });
+    const data = event.data || {};
+    if (typeof data.angelNavigate === 'string' && /^https?:/i.test(data.angelNavigate)) push({ type: 'url', url: data.angelNavigate });
+    else if (data.angelBlank && data.angelBlank === current) noRender();
   });
 
   const show = (entry) => {
