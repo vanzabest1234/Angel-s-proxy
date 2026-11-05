@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Angel's Windows</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="desktop">
+    <div class="wallpaper" aria-hidden="true">
+      <span class="bloom bloom-a"></span>
+      <span class="bloom bloom-b"></span>
+      <span class="bloom bloom-c"></span>
+      <span class="ribbon"></span>
+    </div>
+
+    <div class="desktop-icons">
+      <button class="desk-icon" data-open="readme">
+        <span class="tile tile-readme" aria-hidden="true"></span>
+        <span class="desk-label">README</span>
+      </button>
+      <button class="desk-icon" data-open="readme">
+        <span class="tile tile-pc" aria-hidden="true"></span>
+        <span class="desk-label">This PC</span>
+      </button>
+    </div>
+
+    <section class="window" id="readme-window" aria-label="README">
+      <header class="titlebar">
+        <span class="win-title">Angel's Windows — README</span>
+        <div class="win-controls">
+          <button class="wc wc-min" data-action="minimize" aria-label="Minimize"></button>
+          <button class="wc wc-max" data-action="maximize" aria-label="Maximize"></button>
+          <button class="wc wc-close" data-action="close" aria-label="Close"></button>
+        </div>
+      </header>
+      <div class="win-body" id="readme-body">Loading…</div>
+    </section>
+
+    <div class="watermark">Angel's Windows 11 · Preview build</div>
+
+    <div class="start-menu" id="start-menu" hidden>
+      <label class="start-search">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="13" y1="13" x2="17.5" y2="17.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input type="text" placeholder="Search apps, settings and documents" aria-label="Search">
+      </label>
+
+      <div class="start-head">
+        <span>Pinned</span>
+        <span class="start-more">All apps &rsaquo;</span>
+      </div>
+
+      <div class="pinned">
+        <button class="pin" data-open="readme"><span class="tile tile-readme"></span><span>README</span></button>
+        <button class="pin" data-open="readme"><span class="tile tile-pc"></span><span>This PC</span></button>
+        <button class="pin" data-open="readme"><span class="tile tile-edge"></span><span>Edge</span></button>
+        <button class="pin" data-open="readme"><span class="tile tile-store"></span><span>Store</span></button>
+        <button class="pin" data-open="readme"><span class="tile tile-photos"></span><span>Photos</span></button>
+        <button class="pin" data-open="readme"><span class="tile tile-settings"></span><span>Settings</span></button>
+      </div>
+
+      <div class="start-head"><span>Recommended</span></div>
+      <div class="recommended">
+        <button class="rec" data-open="readme">
+          <span class="tile tile-readme small"></span>
+          <span><strong>README.md</strong><em>Angel's Windows</em></span>
+        </button>
+        <button class="rec" data-open="readme">
+          <span class="tile tile-notes small"></span>
+          <span><strong>Release notes</strong><em>Build 24H2 · just now</em></span>
+        </button>
+      </div>
+
+      <footer class="start-footer">
+        <span class="user"><span class="avatar">A</span>Angel</span>
+        <button class="power" data-power>Power</button>
+      </footer>
+    </div>
+
+    <footer class="taskbar">
+      <div class="tb-center">
+        <button class="tb-btn" id="start-btn" aria-label="Start" aria-expanded="false">
+          <span class="win-logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        </button>
+        <button class="tb-btn" aria-label="Search">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="13" y1="13" x2="17.5" y2="17.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+        <button class="tb-btn" aria-label="Widgets">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2.5" width="6.5" height="10" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="11" width="6.5" height="6.5" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="14.5" width="6.5" height="3" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+        <button class="tb-btn" data-open="readme" aria-label="File Explorer">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6a1.6 1.6 0 0 1 1.6-1.6h3.6l1.7 2.1h6.9A1.6 1.6 0 0 1 17.4 8v6a1.6 1.6 0 0 1-1.6 1.6H3.6A1.6 1.6 0 0 1 2 14z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="tb-btn" aria-label="Settings">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.1" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.6"/></svg>
+        </button>
+      </div>
+      <div class="tray">
+        <span class="tray-icons" aria-hidden="true">
+          <svg viewBox="0 0 20 20"><path d="M2 12.5a11 11 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M5.5 15a6.5 6.5 0 0 1 9 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="17" r="1" fill="currentColor"/></svg>
+          <svg viewBox="0 0 20 20"><path d="M4 8.5v3h2.5L11 15V5L6.5 8.5z" fill="currentColor"/><path d="M13.5 7.5a3.5 3.5 0 0 1 0 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <svg viewBox="0 0 20 20"><rect x="2.5" y="6.5" width="13" height="7" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="4.5" y="8.5" width="7" height="3" rx="1" fill="currentColor"/><path d="M17 9v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span class="clock"><span id="clock-time">--:-- --</span><span id="clock-date"></span></span>
+      </div>
+    </footer>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
