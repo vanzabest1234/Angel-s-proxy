@@ -105,7 +105,7 @@ export function openApp(id) {
     const win = createWindow({ id, title: def.title, body: null });
     entry = { el: win.el, body: win.body };
     open.set(id, entry);
-    def.render(win.body, { openApp });
+    def.render(win.body, { openApp, appsList: apps });
   } else {
     entry.el.classList.remove('is-hidden');
   }
