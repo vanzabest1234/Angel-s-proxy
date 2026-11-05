@@ -183,6 +183,97 @@ async function image(res, target, referer) {
   }
 }
 
+/* ---------- AI providers ---------- */
+const AI_MODEL_IDS = {
+  claude: { 'Claude Sonnet 4.5': 'claude-sonnet-4-5', 'Claude Opus 4.1': 'claude-opus-4-1', 'Claude Haiku 3.5': 'claude-3-5-haiku-latest' },
+  chatgpt: { 'GPT-5': 'gpt-5', 'GPT-4.1': 'gpt-4.1', 'o4-mini': 'o4-mini' },
+  gemini: { 'Gemini 2.5 Pro': 'gemini-2.5-pro', 'Gemini 2.5 Flash': 'gemini-2.5-flash', 'Gemini 2.0 Flash': 'gemini-2.0-flash' },
+};
+const AI_LABEL = { claude: 'Anthropic (Claude)', chatgpt: 'OpenAI', gemini: 'Google (Gemini)' };
+
+const aiKeys = () => ({
+  claude: (process.env.ANTHROPIC_API_KEY || '').trim(),
+  chatgpt: (process.env.OPENAI_API_KEY || '').trim(),
+  gemini: (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '').trim(),
+});
+
+const aiStatus = () => Object.fromEntries(Object.entries(aiKeys()).map(([id, key]) => [id, Boolean(key)]));
+
+const aiMessages = (raw) => (Array.isArray(raw) ? raw : [])
+  .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+  .slice(-12)
+  .map((m) => ({ role: m.role, content: m.content.slice(0, 8000) }));
+
+async function aiReply(provider, model, messages) {
+  const key = aiKeys()[provider];
+  const models = AI_MODEL_IDS[provider];
+  const id = models[model] || Object.values(models)[0];
+  const signal = AbortSignal.timeout(60000);
+
+  if (provider === 'claude') {
+    const turns = messages[0].role === 'assistant' ? messages.slice(1) : messages;
+    if (!turns.length) throw new Error('Nothing to send.');
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal,
+      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: id, max_tokens: 1024, messages: turns }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error?.message || `Claude returned ${r.status}`);
+    return (data.content || []).filter((part) => part.type === 'text').map((part) => part.text).join('\n').trim();
+  }
+
+  if (provider === 'chatgpt') {
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      signal,
+      headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ model: id, messages }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error?.message || `OpenAI returned ${r.status}`);
+    return (data.choices?.[0]?.message?.content || '').trim();
+  }
+
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${id}:generateContent?key=${encodeURIComponent(key)}`, {
+    method: 'POST',
+    signal,
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+    }),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error?.message || `Gemini returned ${r.status}`);
+  return (data.candidates?.[0]?.content?.parts || []).map((part) => part.text || '').join('').trim();
+}
+
+async function handleAi(req, res) {
+  let raw = '';
+  for await (const chunk of req) {
+    raw += chunk;
+    if (raw.length > 400000) return json(res, 413, { error: 'Message too large.' });
+  }
+  let body;
+  try { body = JSON.parse(raw || '{}'); } catch { return json(res, 400, { error: 'Bad request.' }); }
+
+  const provider = String(body.provider || '');
+  if (!(provider in AI_MODEL_IDS)) return json(res, 400, { error: 'Unknown assistant.' });
+  if (!aiKeys()[provider]) return json(res, 501, { error: `${AI_LABEL[provider]} is not connected — add its API key in the app secrets.` });
+
+  const messages = aiMessages(body.messages);
+  if (!messages.length) return json(res, 400, { error: 'Nothing to send.' });
+
+  try {
+    const reply = await aiReply(provider, String(body.model || ''), messages);
+    if (!reply) return json(res, 502, { error: 'The assistant returned an empty reply.' });
+    return json(res, 200, { reply });
+  } catch (err) {
+    return json(res, 502, { error: err.message || 'The assistant could not be reached.' });
+  }
+}
+
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const path = decodeURIComponent(url.pathname);
@@ -190,6 +281,14 @@ createServer(async (req, res) => {
   if (path === '/health') {
     res.writeHead(200, { 'content-type': 'text/plain' });
     return res.end('ok');
+  }
+
+  if (path === '/api/ai/status') {
+    return json(res, 200, { configured: aiStatus() });
+  }
+
+  if (path === '/api/ai' && req.method === 'POST') {
+    return handleAi(req, res);
   }
 
   if (path === '/read') {

@@ -78,7 +78,7 @@ const greet = (provider, model) =>
 
 const demoReply = (provider, model, text) => {
   const ask = text.length > 100 ? `${text.slice(0, 100)}…` : text;
-  return `You asked: “${ask}”\n\nThis is a demo reply on the ${provider.name} card, running ${model}. Connect a ${provider.maker} API key and this window will fetch a real answer from ${provider.name} instead.`;
+  return `You asked: “${ask}”\n\nThis is a demo reply on the ${provider.name} card, running ${model}. Connect your ${provider.maker} API key and this window will fetch a real answer from ${provider.name} instead.`;
 };
 
 export function renderAi(body) {
@@ -120,15 +120,25 @@ export function renderAi(body) {
 
   let active = PROVIDERS[0];
   let busy = false;
+  let live = {};
+  let history = [];
+  let noticeEl = null;
 
   const scroll = () => { thread.scrollTop = thread.scrollHeight; };
 
   const notice = () => {
-    const el = document.createElement('p');
-    el.className = 'ai-demo';
-    el.textContent = 'Demo mode — replies are placeholders. Add a provider API key for live answers.';
-    thread.append(el);
+    noticeEl = document.createElement('p');
+    noticeEl.className = 'ai-demo';
+    refreshNotice();
+    thread.append(noticeEl);
   };
+
+  function refreshNotice() {
+    if (!noticeEl) return;
+    noticeEl.textContent = live[active.id]
+      ? `${active.name} is connected — replies come live from ${active.maker}.`
+      : `Demo mode on ${active.name} — add your ${active.maker} API key for live answers.`;
+  }
 
   const say = (role, text) => {
     const el = document.createElement('div');
@@ -166,6 +176,8 @@ export function renderAi(body) {
     });
 
     if (announce) {
+      history = [];
+      refreshNotice();
       divider(`Switched to ${active.name} · ${modelSel.value}`);
       hello();
       scroll();
@@ -174,10 +186,19 @@ export function renderAi(body) {
 
   const reset = () => {
     thread.innerHTML = '';
+    history = [];
     notice();
     hello();
     scroll();
   };
+
+  fetch('/api/ai/status')
+    .then((r) => r.json())
+    .then((data) => {
+      live = data.configured || {};
+      refreshNotice();
+    })
+    .catch(() => {});
 
   body.querySelectorAll('.ai-pick').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -207,6 +228,7 @@ export function renderAi(body) {
     if (!text || busy) return;
 
     say('user', text);
+    history.push({ role: 'user', content: text });
     input.value = '';
     input.style.height = 'auto';
     busy = true;
@@ -217,11 +239,40 @@ export function renderAi(body) {
     thread.append(typing);
     scroll();
 
-    setTimeout(() => {
+    const provider = active.id;
+    const model = modelSel.value;
+
+    if (!live[provider]) {
+      setTimeout(() => {
+        typing.remove();
+        const reply = demoReply(active, model, text);
+        history.push({ role: 'assistant', content: reply });
+        say('ai', reply);
+        busy = false;
+      }, 600);
+      return;
+    }
+
+    const fail = (message) => {
       typing.remove();
-      say('ai', demoReply(active, modelSel.value, text));
+      say('ai', `⚠ ${message}`);
       busy = false;
-    }, 600);
+    };
+
+    fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ provider, model, messages: history }),
+    })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || !data.reply) throw new Error(data.error || 'The assistant could not answer.');
+        typing.remove();
+        history.push({ role: 'assistant', content: data.reply });
+        say('ai', data.reply);
+        busy = false;
+      })
+      .catch((err) => fail(err.message || 'The assistant could not be reached.'));
   });
 
   select(localStorage.getItem('angel.ai') || PROVIDERS[0].id, false);
