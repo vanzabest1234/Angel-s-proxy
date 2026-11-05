@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Launcher — Angel's Windows</title>
+<link rel="stylesheet" href="./styles.css">
+<link rel="stylesheet" href="./apps.css">
+<link rel="stylesheet" href="./logos.css">
+<style>
+  html, body { height: auto; min-height: 100%; overflow: hidden auto; }
+  body.launcher { display: block; }
+
+  .launcher .wallpaper { position: fixed; }
+
+  .launcher-shell {
+    position: relative;
+    z-index: 2;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 44px 32px 36px;
+  }
+
+  .l-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+
+  .l-kicker {
+    margin: 0 0 6px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  #l-greet {
+    margin: 0;
+    font-size: clamp(30px, 4vw, 44px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .l-clock {
+    margin: 8px 0 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  #l-time {
+    color: var(--ink);
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .l-desktop {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--ink);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    backdrop-filter: blur(18px) saturate(140%);
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+
+  .l-desktop:hover { background: rgba(255, 255, 255, 0.17); border-color: rgba(255, 255, 255, 0.26); }
+  .l-desktop:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .l-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .l-section-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  #l-count { font-size: 12px; color: var(--muted); }
+
+  .l-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+    gap: 12px;
+  }
+
+  .l-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 15px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--ink);
+    text-decoration: none;
+    backdrop-filter: blur(18px) saturate(140%);
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  }
+
+  .l-card:hover {
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(255, 255, 255, 0.24);
+    transform: translateY(-2px);
+  }
+
+  .l-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .l-card .tile { flex: none; }
+
+  .l-copy { display: flex; flex-direction: column; min-width: 0; }
+  .l-card-name { font-size: 14.5px; font-weight: 600; }
+  .l-card-desc { margin-top: 3px; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+
+  .l-foot {
+    margin-top: 26px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .l-foot a { color: var(--accent); text-decoration: none; }
+  .l-foot a:hover { text-decoration: underline; }
+
+  @media (max-width: 640px) {
+    .launcher-shell { padding: 30px 16px 28px; }
+    .l-grid { grid-template-columns: 1fr; }
+    .l-desktop { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body class="launcher">
+  <div class="wallpaper" aria-hidden="true">
+    <span class="bloom bloom-a"></span>
+    <span class="bloom bloom-b"></span>
+    <span class="bloom bloom-c"></span>
+    <span class="ribbon"></span>
+  </div>
+
+  <main class="launcher-shell">
+    <header class="l-head">
+      <div>
+        <p class="l-kicker">Angel's Windows 11</p>
+        <h1 id="l-greet">Welcome</h1>
+        <p class="l-clock">
+          <span id="l-time">--:-- --</span>
+          <span aria-hidden="true">&middot;</span>
+          <span id="l-date"></span>
+        </p>
+      </div>
+      <a class="l-desktop" href="./">
+        <span class="win-logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        Open desktop
+      </a>
+    </header>
+
+    <section aria-labelledby="l-apps">
+      <div class="l-section-head">
+        <h2 id="l-apps">All apps</h2>
+        <span id="l-count"></span>
+      </div>
+      <div class="l-grid" id="l-grid"></div>
+    </section>
+
+    <footer class="l-foot">
+      Pick an app to boot the desktop with it already open &middot;
+      <a href="./">Angel's Windows 11</a>
+    </footer>
+  </main>
+
+  <script type="module" src="./launcher.js"></script>
+</body>
+</html>
