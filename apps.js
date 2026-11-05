@@ -118,7 +118,7 @@ function renderBrowser(body) {
   let history = [{ type: 'home' }];
   let index = 0;
   let current = null;
-  let frameToken = null;
+  let visitToken = 0;
 
   const home = () => {
     current = null;
@@ -164,9 +164,9 @@ function renderBrowser(body) {
         : '';
 
       const related = topics
-        .map((topic) => `<button class="ddg-result" data-url="${attr(topic.FirstURL)}">
+        .map((topic) => `<button class="ddg-result" data-title="${attr(topic.Text.split(' - ')[0])}">
             <strong>${esc(topic.Text.split(' - ')[0])}</strong>
-            <span>${esc(topic.FirstURL.replace(/^https?:\/\//, ''))}</span>
+            <span>${esc(topic.Text.split(' - ').slice(1).join(' - ').slice(0, 110))}</span>
           </button>`)
         .join('');
 
@@ -180,8 +180,8 @@ function renderBrowser(body) {
         ${!answer && !related ? '<p class="muted">No instant answer for that one — open the full results on DuckDuckGo.</p>' : ''}
       </div>`;
 
-      page.querySelectorAll('.ddg-result[data-url]').forEach((btn) => {
-        btn.addEventListener('click', () => push({ type: 'url', url: btn.dataset.url }));
+      page.querySelectorAll('.ddg-result[data-title]').forEach((btn) => {
+        btn.addEventListener('click', () => push({ type: 'search', query: btn.dataset.title }));
       });
     } catch {
       page.innerHTML = `<div class="ddg-results">
@@ -191,38 +191,94 @@ function renderBrowser(body) {
     }
   };
 
-  const visit = (url, view) => {
+  const readerView = (data) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'reader';
+
+    const head = document.createElement('header');
+    head.className = 'reader-head';
+    const title = document.createElement('h1');
+    title.textContent = data.title || data.url;
+    const meta = document.createElement('p');
+    meta.className = 'reader-meta';
+    meta.textContent = data.site ? `${data.site} · ` : '';
+    const real = document.createElement('a');
+    real.href = data.url;
+    real.target = '_blank';
+    real.rel = 'noopener noreferrer';
+    real.textContent = 'Open the real page ↗';
+    meta.append(real);
+    head.append(title, meta);
+    wrap.append(head);
+
+    const article = document.createElement('article');
+    article.className = 'reader-body';
+    let list = null;
+
+    for (const block of data.blocks || []) {
+      if (block.t === 'li') {
+        if (!list) { list = document.createElement('ul'); article.append(list); }
+        const item = document.createElement('li');
+        item.textContent = block.text;
+        list.append(item);
+        continue;
+      }
+      list = null;
+
+      if (block.t === 'img') {
+        const figure = document.createElement('figure');
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.alt = block.alt || '';
+        img.src = `/img?url=${encodeURIComponent(block.src)}&ref=${encodeURIComponent(data.url)}`;
+        img.addEventListener('error', () => figure.remove());
+        figure.append(img);
+        if (block.alt) {
+          const caption = document.createElement('figcaption');
+          caption.textContent = block.alt;
+          figure.append(caption);
+        }
+        article.append(figure);
+        continue;
+      }
+
+      const tag = block.t === 'h' ? (block.level >= 3 ? 'h3' : 'h2')
+        : block.t === 'q' ? 'blockquote'
+          : block.t === 'pre' ? 'pre' : 'p';
+      const node = document.createElement(tag);
+      node.textContent = block.text;
+      article.append(node);
+    }
+
+    if (!article.childElementCount) {
+      const empty = document.createElement('p');
+      empty.className = 'muted';
+      empty.textContent = data.note || 'This page has no readable text — open the real page to see it.';
+      article.append(empty);
+    }
+
+    wrap.append(article);
+    return wrap;
+  };
+
+  const visit = async (url) => {
     current = url;
     input.value = url;
-    frameToken = `f${Date.now()}${Math.random().toString(36).slice(2, 7)}`;
-    const target = view || `/proxy?url=${encodeURIComponent(url)}&t=${frameToken}`;
-    const label = esc(url.replace(/^https?:\/\//, ''));
-    page.innerHTML = `
-      <div class="browser-frame"><iframe src="${attr(target)}" title="${attr(url)}" sandbox="allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe></div>
-      <div class="browser-note">${view ? 'Text-only view.' : "Loaded through Angel's proxy."} <a href="${attr(url)}" target="_blank" rel="noopener noreferrer">Open ${label} in a new tab &#8599;</a></div>`;
-  };
+    const token = ++visitToken;
+    page.innerHTML = `<div class="reader"><p class="app-loading">Opening ${esc(url.replace(/^https?:\/\//, ''))}…</p></div>`;
 
-  const noRender = () => {
-    const label = esc(current.replace(/^https?:\/\//, ''));
-    page.innerHTML = `
-      <div class="browser-blank">
-        <h2>${label} didn't render in the window</h2>
-        <p>Sites like YouTube, Reddit or Google Search only run inside their own app, so the page came back empty. You can open it in a real tab, or read the page as text here.</p>
-        <div class="browser-blank-actions">
-          <a class="blank-link" href="${attr(current)}" target="_blank" rel="noopener noreferrer">Open in a new tab &#8599;</a>
-          <button type="button" class="blank-btn" data-blank="text">Show text-only view</button>
-          <button type="button" class="blank-btn" data-blank="retry">Try again</button>
-        </div>
-      </div>`;
-    page.querySelector('[data-blank="text"]').addEventListener('click', () => visit(current, `/text?url=${encodeURIComponent(current)}`));
-    page.querySelector('[data-blank="retry"]').addEventListener('click', () => visit(current, null));
-  };
+    let data;
+    try {
+      const res = await fetch(`/read?url=${encodeURIComponent(url)}`, { cache: 'no-store' });
+      data = await res.json();
+    } catch {
+      data = { url, site: '', title: url.replace(/^https?:\/\//, ''), blocks: [], note: "Angel's proxy could not reach that address." };
+    }
 
-  window.addEventListener('message', (event) => {
-    const data = event.data || {};
-    if (typeof data.angelNavigate === 'string' && /^https?:/i.test(data.angelNavigate)) push({ type: 'url', url: data.angelNavigate });
-    else if (data.angelBlank && data.angelBlank === frameToken) noRender();
-  });
+    if (token !== visitToken) return;
+    page.innerHTML = '';
+    page.append(readerView(data));
+  };
 
   const show = (entry) => {
     if (entry.type === 'search') search(entry.query);
