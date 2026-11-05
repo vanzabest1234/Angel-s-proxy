@@ -160,10 +160,10 @@ function renderBrowser(body) {
         : '';
 
       const related = topics
-        .map((topic) => `<a class="ddg-result" href="${attr(topic.FirstURL)}" target="_blank" rel="noopener noreferrer">
+        .map((topic) => `<button class="ddg-result" data-url="${attr(topic.FirstURL)}">
             <strong>${esc(topic.Text.split(' - ')[0])}</strong>
             <span>${esc(topic.FirstURL.replace(/^https?:\/\//, ''))}</span>
-          </a>`)
+          </button>`)
         .join('');
 
       page.innerHTML = `<div class="ddg-results">
@@ -175,6 +175,10 @@ function renderBrowser(body) {
         ${related ? `<h3 class="ddg-sub">Related</h3><div class="ddg-list">${related}</div>` : ''}
         ${!answer && !related ? '<p class="muted">No instant answer for that one — open the full results on DuckDuckGo.</p>' : ''}
       </div>`;
+
+      page.querySelectorAll('.ddg-result[data-url]').forEach((btn) => {
+        btn.addEventListener('click', () => push({ type: 'url', url: btn.dataset.url }));
+      });
     } catch {
       page.innerHTML = `<div class="ddg-results">
         <p>DuckDuckGo didn't answer inside the app.</p>
@@ -185,10 +189,16 @@ function renderBrowser(body) {
 
   const visit = (url) => {
     input.value = url;
+    const label = esc(url.replace(/^https?:\/\//, ''));
     page.innerHTML = `
-      <div class="browser-frame"><iframe src="${attr(url)}" title="${attr(url)}" sandbox="allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe></div>
-      <div class="browser-note">Sites that refuse to be embedded stay blank. <a href="${attr(url)}" target="_blank" rel="noopener noreferrer">Open ${esc(url.replace(/^https?:\/\//, ''))} in a new tab &#8599;</a></div>`;
+      <div class="browser-frame"><iframe src="/proxy?url=${encodeURIComponent(url)}" title="${attr(url)}" sandbox="allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe></div>
+      <div class="browser-note">Loaded through Angel's proxy. <a href="${attr(url)}" target="_blank" rel="noopener noreferrer">Open ${label} in a new tab &#8599;</a></div>`;
   };
+
+  window.addEventListener('message', (event) => {
+    const next = event.data && event.data.angelNavigate;
+    if (typeof next === 'string' && /^https?:/i.test(next)) push({ type: 'url', url: next });
+  });
 
   const show = (entry) => {
     if (entry.type === 'search') search(entry.query);
