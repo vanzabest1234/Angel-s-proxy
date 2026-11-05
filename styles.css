@@ -724,3 +724,13 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   .explorer-list { border-right: 0; border-bottom: 1px solid #eceef2; }
   .watermark { display: none; }
 }
+
+/* Short windows: lift the floating bar clear of the bottom edge */
+@media (max-height: 760px) {
+  .taskbar { bottom: 64px; }
+  .start-menu { bottom: 126px; max-height: calc(100vh - 138px); }
+  .watermark { display: none; }
+  .window { height: min(520px, calc(100vh - 200px)); }
+  .window[data-app="browser"] { height: min(600px, calc(100vh - 200px)); }
+  .window.is-max { height: calc(100% - 116px); }
+}
