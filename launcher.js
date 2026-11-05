@@ -14,7 +14,7 @@ const ids = [...ORDER.filter((id) => apps[id]), ...Object.keys(apps).filter((id)
 
 grid.innerHTML = ids.map((id) => {
   const app = apps[id];
-  return `<a class="l-card" href="/?app=${encodeURIComponent(id)}">
+  return `<a class="l-card" href="./?app=${encodeURIComponent(id)}">
     <span class="tile ${app.tile}" aria-hidden="true"></span>
     <span class="l-copy">
       <span class="l-card-name">${app.name}</span>

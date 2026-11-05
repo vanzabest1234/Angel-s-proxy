@@ -51,7 +51,7 @@ function markdown(md) {
 async function renderReadme(body) {
   body.innerHTML = '<div class="doc"><p class="app-loading">Loading README…</p></div>';
   try {
-    const res = await fetch('/README.md', { cache: 'no-store' });
+    const res = await fetch('./README.md', { cache: 'no-store' });
     if (!res.ok) throw new Error(res.status);
     body.innerHTML = `<div class="doc">${markdown(await res.text())}</div>`;
   } catch {
