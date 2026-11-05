@@ -164,6 +164,11 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
 
 .window[data-app="store"] { width: min(820px, calc(100vw - 56px)); }
 
+.window[data-app="ai"] {
+  width: min(900px, calc(100vw - 56px));
+  height: min(620px, calc(100vh - 150px));
+}
+
 .window.is-hidden { display: none; }
 
 .window.is-max {
@@ -697,6 +702,7 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   .tb-center .tb-btn:nth-child(3) { display: none; }
   .window,
   .window[data-app="browser"],
+  .window[data-app="ai"],
   .window[data-app="store"] {
     transform: translate(-50%, -50%);
     width: calc(100vw - 20px);
