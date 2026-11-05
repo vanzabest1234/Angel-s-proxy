@@ -136,4 +136,5 @@ if (savedWallpaper) document.documentElement.dataset.wallpaper = savedWallpaper;
 
 tick();
 setInterval(tick, 1000);
-openApp('browser');
+const bootApp = new URLSearchParams(window.location.search).get('app');
+openApp(bootApp && apps[bootApp] ? bootApp : 'browser');

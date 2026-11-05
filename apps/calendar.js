@@ -23,7 +23,7 @@ export function renderCalendar(body) {
       <p class="cal-note" data-note></p>
     </div>`;
 
-  const today = new Date();
+  let today = new Date();
   let view = new Date(today.getFullYear(), today.getMonth(), 1);
   let picked = null;
 
@@ -89,6 +89,18 @@ export function renderCalendar(body) {
     picked = null;
     draw();
   });
+
+  /* roll over to the new day without a refresh */
+  const sync = () => {
+    if (!body.isConnected) { clearInterval(timer); return; }
+    const now = new Date();
+    if (now.toDateString() === today.toDateString()) return;
+    today = now;
+    view = new Date(today.getFullYear(), today.getMonth(), 1);
+    picked = null;
+    draw();
+  };
+  const timer = setInterval(sync, 30 * 1000);
 
   draw();
 }

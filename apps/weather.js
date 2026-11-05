@@ -105,6 +105,13 @@ export function renderWeather(body) {
   });
 
   load(saved);
+
+  /* keep the forecast current while the window is open */
+  const timer = setInterval(() => {
+    if (!body.isConnected) { clearInterval(timer); return; }
+    if (document.visibilityState !== 'visible') return;
+    load(localStorage.getItem('angel.city') || 'New York');
+  }, 10 * 60 * 1000);
 }
 
 export const weather = {

@@ -192,13 +192,21 @@ export function renderAi(body) {
     scroll();
   };
 
-  fetch('/api/ai/status')
+  const syncStatus = () => fetch('/api/ai/status')
     .then((r) => r.json())
     .then((data) => {
       live = data.configured || {};
       refreshNotice();
     })
     .catch(() => {});
+
+  syncStatus();
+
+  /* pick up a key added on the server without reopening the window */
+  const statusTimer = setInterval(() => {
+    if (!body.isConnected) { clearInterval(statusTimer); return; }
+    if (document.visibilityState === 'visible') syncStatus();
+  }, 60 * 1000);
 
   body.querySelectorAll('.ai-pick').forEach((btn) => {
     btn.addEventListener('click', () => {
