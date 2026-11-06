@@ -160,6 +160,73 @@ async function readPage(res, target) {
   }
 }
 
+const unwrapResultUrl = (raw) => {
+  try {
+    const parsed = new URL(raw);
+    if (/duckduckgo\.com$/.test(parsed.hostname) && parsed.searchParams.get('uddg')) return parsed.searchParams.get('uddg');
+    return raw;
+  } catch {
+    return raw;
+  }
+};
+
+function parseResults(markdown) {
+  const out = [];
+  let current = null;
+
+  for (const raw of markdown.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+
+    const heading = line.match(/^#{1,4}\s+\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/);
+    if (heading) {
+      const url = unwrapResultUrl(heading[2]);
+      let host = '';
+      try { host = new URL(url).hostname; } catch { host = ''; }
+      current = host && !/duckduckgo\.com$/.test(host) ? { title: heading[1].replace(/[*_`]/g, '').trim(), url, snippet: '' } : null;
+      if (current) out.push(current);
+      if (out.length >= 12) break;
+      continue;
+    }
+
+    if (!current) continue;
+    const text = line
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+      .replace(/\[\]\([^)]*\)/g, '')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/\*{2,}/g, ' ')
+      .replace(/[*_`#>]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!text || /^(previous|next|keyboard shortcut|feedback)/i.test(text)) continue;
+    if (!text.includes(' ') && /\./.test(text)) continue;
+    current.snippet = (current.snippet ? `${current.snippet} ` : '') + text;
+    if (current.snippet.length > 240) current.snippet = `${current.snippet.slice(0, 240).trim()}…`;
+  }
+
+  return out.filter((r) => r.title && r.url);
+}
+
+async function searchResults(res, query) {
+  const q = (query || '').trim();
+  if (!q) return json(res, 400, { error: 'bad query' });
+  const target = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`;
+
+  try {
+    const upstream = await fetch(`https://r.jina.ai/${target}`, {
+      headers: { accept: 'text/plain', 'user-agent': UA },
+      signal: AbortSignal.timeout(20000),
+    });
+    const text = (await upstream.text()).slice(0, 400000);
+    const results = parseResults(text);
+    return json(res, 200, results.length
+      ? { query: q, results }
+      : { query: q, results: [], note: 'DuckDuckGo did not answer just now — try again.' });
+  } catch {
+    return json(res, 200, { query: q, results: [], note: 'DuckDuckGo did not answer just now — try again.' });
+  }
+}
+
 async function image(res, target, referer) {
   let dest;
   try { dest = new URL(target); } catch { return json(res, 400, { error: 'bad url' }); }
@@ -293,6 +360,10 @@ createServer(async (req, res) => {
 
   if (path === '/read') {
     return readPage(res, url.searchParams.get('url') || '');
+  }
+
+  if (path === '/search') {
+    return searchResults(res, url.searchParams.get('q') || '');
   }
 
   if (path === '/img') {

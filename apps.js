@@ -99,14 +99,116 @@ async function renderFiles(body) {
 }
 
 /* ---------- Angel's Proxy browser ---------- */
-const PROXY_URL = 'https://s3.dualstack.us-east-1.amazonaws.com/mathshelp/index.html';
+const isAddress = (value) => /^https?:\/\//i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value);
+const withScheme = (value) => (/^https?:\/\//i.test(value) ? value : `https://${value}`);
+const hostOf = (url) => {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+};
+
+function proxyBlock(block) {
+  if (block.t === 'h') return `<h3 class="proxy-h">${esc(block.text)}</h3>`;
+  if (block.t === 'li') return `<p class="proxy-li">${esc(block.text)}</p>`;
+  if (block.t === 'pre') return `<pre class="proxy-pre">${esc(block.text)}</pre>`;
+  if (block.t === 'q') return `<blockquote class="proxy-q">${esc(block.text)}</blockquote>`;
+  return `<p>${esc(block.text)}</p>`;
+}
 
 function renderBrowser(body) {
-  body.innerHTML = `
-    <div class="study">
-      <iframe class="study-frame" src="${PROXY_URL}" title="Angel's Proxy"
-        allow="clipboard-read; clipboard-write; fullscreen; autoplay"></iframe>
-    </div>`;
+  body.innerHTML = '<div class="proxy"><div class="proxy-view"></div></div>';
+  const view = body.querySelector('.proxy-view');
+
+  const home = (value = '') => {
+    view.className = 'proxy-view';
+    view.innerHTML = `
+      <div class="proxy-home">
+        <div class="proxy-brand">
+          <span class="proxy-mark" aria-hidden="true"></span>
+          <div>
+            <h1 class="proxy-word">Angel's <span>Proxy</span></h1>
+            <p class="proxy-sub">Your own black and red browser</p>
+          </div>
+        </div>
+        <form class="proxy-search" role="search">
+          <input class="proxy-input" type="text" value="${attr(value)}" placeholder="Search DuckDuckGo or enter a URL"
+            aria-label="Search DuckDuckGo or enter a URL" autocomplete="off" spellcheck="false">
+          <button class="proxy-go" type="submit" aria-label="Search">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.4" fill="none" stroke="currentColor" stroke-width="1.9"/><line x1="12.8" y1="12.8" x2="17" y2="17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+          </button>
+        </form>
+        <p class="proxy-note">Searches go to DuckDuckGo</p>
+      </div>`;
+
+    const form = view.querySelector('.proxy-search');
+    const input = view.querySelector('.proxy-input');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const query = input.value.trim();
+      if (!query) return input.focus();
+      return isAddress(query) ? page(withScheme(query)) : results(query);
+    });
+    input.focus();
+    input.select();
+  };
+
+  const shell = (label, loading) => {
+    view.className = 'proxy-view is-doc';
+    view.innerHTML = `
+      <div class="proxy-bar">
+        <button class="proxy-back" type="button">← Home</button>
+        <span class="proxy-crumb">${esc(label)}</span>
+      </div>
+      <div class="proxy-doc"><p class="proxy-loading">${esc(loading)}</p></div>`;
+    view.querySelector('.proxy-back').addEventListener('click', (event) => {
+      event.stopPropagation();
+      home();
+    });
+    return view.querySelector('.proxy-doc');
+  };
+
+  const results = async (query) => {
+    const doc = shell(`DuckDuckGo · ${query}`, 'Searching DuckDuckGo…');
+    try {
+      const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (!data.results || !data.results.length) {
+        doc.innerHTML = `<p class="proxy-loading">${esc(data.note || 'No results from DuckDuckGo.')}</p>`;
+        return;
+      }
+      doc.innerHTML = `<ol class="proxy-results">${data.results.map((r) => `
+        <li class="proxy-result">
+          <button class="proxy-result-title" type="button" data-href="${attr(r.url)}">${esc(r.title)}</button>
+          <span class="proxy-result-host">${esc(hostOf(r.url))}</span>
+          ${r.snippet ? `<p class="proxy-result-text">${esc(r.snippet)}</p>` : ''}
+        </li>`).join('')}</ol>`;
+      doc.querySelectorAll('.proxy-result-title').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+          page(button.dataset.href);
+        });
+      });
+    } catch {
+      doc.innerHTML = '<p class="proxy-loading">DuckDuckGo did not answer just now.</p>';
+    }
+  };
+
+  const page = async (url) => {
+    const doc = shell(hostOf(url), 'Loading…');
+    try {
+      const res = await fetch(`/read?url=${encodeURIComponent(url)}`);
+      const data = await res.json();
+      const blocks = data.blocks || [];
+      doc.innerHTML = blocks.length
+        ? `<h2 class="proxy-title">${esc(data.title || hostOf(url))}</h2>
+           <p class="proxy-site">${esc(data.site || hostOf(url))}</p>
+           ${blocks.map(proxyBlock).join('')}`
+        : `<h2 class="proxy-title">${esc(data.title || hostOf(url))}</h2>
+           <p class="proxy-loading">${esc(data.note || 'Nothing readable on that page.')}</p>`;
+    } catch {
+      doc.innerHTML = '<p class="proxy-loading">That page did not load.</p>';
+    }
+  };
+
+  home();
 }
 
 /* ---------- Settings ---------- */
