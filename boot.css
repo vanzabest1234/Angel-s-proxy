@@ -1,0 +1,100 @@
+/* ---------- update screen ---------- */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(120% 90% at 50% 0%, #0b1730 0%, #050a15 55%, #02040a 100%);
+  color: #f3f4f8;
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: opacity 420ms ease, visibility 420ms ease;
+}
+
+.boot.is-done { opacity: 0; visibility: hidden; }
+
+.boot-inner {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 460px;
+  text-align: center;
+}
+
+.boot-logo { width: 40px; height: 40px; margin-bottom: 4px; }
+.boot-logo i { border-radius: 3px; }
+
+.boot-ring {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) calc(var(--boot-progress, 0) * 1%), rgba(255, 255, 255, 0.12) 0);
+  transition: background 320ms linear;
+}
+
+.boot-ring::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: #050a15;
+}
+
+.boot-ring span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.boot-title { margin: 6px 0 0; font-size: 21px; font-weight: 600; }
+.boot-hint { margin: 0; font-size: 12.5px; color: #a6adbb; }
+
+.boot-log {
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  min-height: 128px;
+  max-height: 172px;
+  overflow: hidden;
+  list-style: none;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  font-family: "Cascadia Code", ui-monospace, Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: #b6bdcb;
+}
+
+.boot-log li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(3px);
+  animation: boot-line 260ms ease forwards;
+}
+
+.boot-log li span::before { content: "› "; color: var(--accent); }
+.boot-log li em { font-style: normal; color: #7b8494; }
+.boot-log li.is-ok em { color: #37d3a4; }
+
+.boot-skip { margin: 4px 0 0; font-size: 11.5px; color: #5b6270; }
+
+@keyframes boot-line {
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-log li { animation: none; opacity: 1; transform: none; }
+  .boot { transition: none; }
+}
