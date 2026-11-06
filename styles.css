@@ -139,7 +139,7 @@ html[data-wallpaper="custom"] .ribbon { display: none; }
 
 .tile-readme { background: linear-gradient(150deg, #5aa9ff, #2f5bff 62%, #1b2f9e); }
 .tile-pc { background: linear-gradient(150deg, #8fd8ff, #2aa7e8 60%, #0f6fb0); }
-.tile-edge { background: linear-gradient(150deg, #4fd1ff, #1288d8 58%, #0a5fa0); }
+.tile-proxy { background: linear-gradient(150deg, #7ee0c6, #12a37f 58%, #0a6a55); }
 .tile-games { background: linear-gradient(150deg, #b48cff, #7c3aed 60%, #4c1d95); }
 .tile-store { background: linear-gradient(150deg, #7ad4ff, #2b7bff 65%, #1a3fb8); }
 .tile-settings { background: linear-gradient(150deg, #c9d3e0, #8290a5 60%, #4a5568); }
@@ -262,6 +262,8 @@ html[data-wallpaper="custom"] .ribbon { display: none; }
 .app-loading { color: #7b8494; font-size: 12.5px; margin: 0; }
 
 /* ---------- browser ---------- */
+.proxy-finds { height: 100%; background: #fff; }
+
 .games { display: flex; flex-direction: column; height: 100%; background: #0f1420; }
 .games-note {
   margin: 0;

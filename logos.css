@@ -15,9 +15,9 @@
     linear-gradient(150deg, #8fd8ff, #2aa7e8 60%, #0f6fb0);
 }
 
-.tile-edge {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M20.6 9.4A9 9 0 1 0 12 21' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round'/><path d='M4.2 13.4h9.6' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round'/></svg>"),
-    linear-gradient(150deg, #4fd1ff, #1288d8 58%, #0a5fa0);
+.tile-proxy {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='7.6' fill='none' stroke='white' stroke-width='2'/><ellipse cx='12' cy='12' rx='3.5' ry='7.6' fill='none' stroke='white' stroke-width='1.8'/><path d='M4.6 9.5h14.8M4.6 14.5h14.8' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round'/></svg>"),
+    linear-gradient(150deg, #7ee0c6, #12a37f 58%, #0a6a55);
 }
 
 .tile-games {
