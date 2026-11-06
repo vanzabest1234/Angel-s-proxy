@@ -290,6 +290,149 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
 
 .browser-page { flex: 1; min-height: 0; overflow: auto; background: #fff; position: relative; }
 
+/* ---------- Study Hub browser ---------- */
+.study { display: flex; flex-direction: column; height: 100%; background: #f4f9ff; }
+
+.study-tabs { display: flex; align-items: center; gap: 6px; padding: 7px 10px 0; background: #e8f3fd; }
+
+.study-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 230px;
+  min-width: 0;
+  padding: 6px 9px 7px;
+  border: 0;
+  border-radius: 9px 9px 0 0;
+  background: #fff;
+  color: #1d3b57;
+  font-size: 12.5px;
+  cursor: default;
+}
+
+.study-tab-mark { flex: 0 0 auto; width: 13px; height: 13px; border-radius: 3px; background: linear-gradient(150deg, #7dd3fc, #0ea5e9); }
+.study-tab-title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.study-tab-x { flex: 0 0 auto; color: #8ba6bb; font-size: 13px; line-height: 1; }
+
+.study-new {
+  width: 24px; height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #41708f;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.study-new:hover { background: rgba(14, 165, 233, 0.16); }
+
+.study-bar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 10px;
+  background: #fff;
+  border-bottom: 1px solid #e2eefa;
+}
+
+.snav {
+  width: 27px; height: 27px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #3d6d90;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.snav:hover { background: #eaf5ff; }
+
+.study-address { flex: 1; min-width: 0; display: flex; }
+
+.study-address .url {
+  height: 29px;
+  border-radius: 999px;
+  border: 1px solid #dcebf8;
+  background: #f7fbff;
+  padding: 0 14px;
+  font-size: 12.5px;
+  color: #17344a;
+}
+
+.study-address .url:focus { outline: 2px solid #0ea5e9; outline-offset: -1px; border-color: transparent; background: #fff; }
+
+.study-page { flex: 1; min-height: 0; overflow: auto; background: #fff; position: relative; }
+
+.study-home {
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+  padding: clamp(20px, 6vh, 52px) 22px 34px;
+  background: radial-gradient(115% 85% at 50% -15%, #e2f4ff 0%, #f5fbff 46%, #ffffff 100%);
+}
+
+.study-brand { display: flex; align-items: center; gap: 10px; }
+
+.study-mark {
+  position: relative;
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(150deg, #7dd3fc, #0ea5e9);
+  box-shadow: 0 6px 14px rgba(14, 130, 190, 0.22);
+}
+
+.study-mark::before { content: ""; position: absolute; inset: 8px 7px; background: #fff; border-radius: 2px; }
+.study-mark::after { content: ""; position: absolute; top: 8px; bottom: 8px; left: 50%; margin-left: -0.75px; width: 1.5px; background: #9ad8f5; }
+
+.study-word { font-size: clamp(24px, 4.6vw, 30px); font-weight: 700; letter-spacing: -0.025em; color: #123f5b; }
+.study-word span { color: #0ea5e9; }
+.study-sub { margin: 0; font-size: 12.5px; color: #5d7f96; }
+
+.study-seek {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(460px, 100%);
+  margin-top: 4px;
+  padding: 4px 4px 4px 16px;
+  border: 1px solid #d9ecfa;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(14, 90, 140, 0.07);
+}
+
+.study-seek:focus-within { border-color: #7dd3fc; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14); }
+
+.study-input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13.5px; color: #17344a; }
+.study-input:focus { outline: none; }
+
+.study-go {
+  width: 32px; height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: #0ea5e9;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.study-pins { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
+
+.study-pin {
+  padding: 9px 14px;
+  border: 1px solid #dbeafa;
+  border-radius: 10px;
+  background: #fff;
+  color: #2b526e;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.study-pin:hover { border-color: #b9dcf5; background: #f2faff; }
+
 .ddg-home { display: grid; justify-items: center; gap: 14px; padding: clamp(26px, 7vh, 64px) 24px; }
 .ddg-word { font-size: clamp(26px, 5vw, 36px); font-weight: 600; color: #de5833; letter-spacing: -0.02em; }
 .ddg-tag { margin: 0; font-size: 13px; color: #6b7280; }

@@ -98,7 +98,7 @@ async function renderFiles(body) {
   }
 }
 
-/* ---------- Edge ---------- */
+/* ---------- Study Hub browser ---------- */
 const isUrl = (value) => !/\s/.test(value) && /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}([/?#].*)?$/i.test(value);
 const withScheme = (value) => (/^https?:\/\//i.test(value) ? value : `https://${value}`);
 
@@ -107,53 +107,70 @@ const flattenTopics = (topics) => topics.flatMap((topic) =>
 
 function renderBrowser(body) {
   body.innerHTML = `
-    <div class="browser">
-      <div class="browser-bar">
-        <button class="nav" data-nav="back" aria-label="Back">&#8249;</button>
-        <button class="nav" data-nav="forward" aria-label="Forward">&#8250;</button>
-        <button class="nav" data-nav="reload" aria-label="Reload">&#8635;</button>
-        <form class="address" role="search">
-          <input class="url" aria-label="Search or enter an address" placeholder="Search DuckDuckGo or enter an address" autocomplete="off" spellcheck="false">
+    <div class="study">
+      <div class="study-tabs">
+        <button class="study-tab is-active" type="button">
+          <span class="study-tab-mark" aria-hidden="true"></span>
+          <span class="study-tab-title" data-tab-title>New Tab</span>
+          <span class="study-tab-x" aria-hidden="true">&times;</span>
+        </button>
+        <button class="study-new" type="button" data-newtab aria-label="New tab">+</button>
+      </div>
+      <div class="study-bar">
+        <button class="snav" data-nav="back" aria-label="Back">&#8249;</button>
+        <button class="snav" data-nav="forward" aria-label="Forward">&#8250;</button>
+        <button class="snav" data-nav="reload" aria-label="Reload">&#8635;</button>
+        <button class="snav" data-nav="home" aria-label="Home">&#8962;</button>
+        <form class="study-address" role="search">
+          <input class="url" aria-label="Search Study Hub or enter a URL" placeholder="Search Study Hub or enter a URL&hellip;" autocomplete="off" spellcheck="false">
         </form>
       </div>
-      <div class="browser-page" data-page></div>
+      <div class="study-page" data-page></div>
     </div>`;
 
   const page = body.querySelector('[data-page]');
   const input = body.querySelector('.url');
+  const tabTitle = body.querySelector('[data-tab-title]');
   let history = [{ type: 'home' }];
   let index = 0;
   let current = null;
   let visitToken = 0;
 
+  const SHORTCUTS = ['books', 'math help', 'science', 'history', 'writing tips'];
+
   const home = () => {
     current = null;
     input.value = '';
+    tabTitle.textContent = 'New Tab';
     page.innerHTML = `
-      <div class="ddg-home">
-        <div class="ddg-word">DuckDuckGo</div>
-        <p class="ddg-tag">Search privately, right from Angel's Windows.</p>
-        <form class="ddg-form">
-          <input class="ddg-input" aria-label="Search DuckDuckGo" placeholder="Search DuckDuckGo">
-          <button class="ddg-go" type="submit">Search</button>
+      <div class="study-home">
+        <div class="study-brand">
+          <span class="study-mark" aria-hidden="true"></span>
+          <span class="study-word">Study<span>Hub</span></span>
+        </div>
+        <p class="study-sub">Smart Learning Tools for Students</p>
+        <form class="study-seek">
+          <input class="study-input" aria-label="Search Study Hub" placeholder="Search DuckDuckGo or type a URL">
+          <button class="study-go" type="submit" aria-label="Search">&#9906;</button>
         </form>
-        <div class="ddg-chips">
-          ${['Windows 11', 'DuckDuckGo privacy', 'web browsers'].map((q) => `<button class="chip" data-q="${attr(q)}">${esc(q)}</button>`).join('')}
+        <div class="study-pins">
+          ${SHORTCUTS.map((q) => `<button class="study-pin" data-q="${attr(q)}">${esc(q)}</button>`).join('')}
         </div>
       </div>`;
 
-    page.querySelector('.ddg-form').addEventListener('submit', (event) => {
+    page.querySelector('.study-seek').addEventListener('submit', (event) => {
       event.preventDefault();
-      go(page.querySelector('.ddg-input').value);
+      go(page.querySelector('.study-input').value);
     });
-    page.querySelectorAll('.chip').forEach((chip) => {
-      chip.addEventListener('click', () => go(chip.dataset.q));
+    page.querySelectorAll('.study-pin').forEach((pin) => {
+      pin.addEventListener('click', () => go(pin.dataset.q));
     });
   };
 
   const search = async (query) => {
     current = null;
     input.value = query;
+    tabTitle.textContent = query;
     page.innerHTML = `<div class="ddg-results"><p class="app-loading">Searching DuckDuckGo for “${esc(query)}”…</p></div>`;
     try {
       const res = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`);
@@ -282,6 +299,7 @@ function renderBrowser(body) {
     }
 
     if (token !== visitToken) return;
+    tabTitle.textContent = data.title || url.replace(/^https?:\/\//, '');
     page.innerHTML = '';
     page.append(readerView(data));
   };
@@ -306,7 +324,7 @@ function renderBrowser(body) {
     else push({ type: 'search', query: value });
   };
 
-  body.querySelector('.address').addEventListener('submit', (event) => {
+  body.querySelector('.study-address').addEventListener('submit', (event) => {
     event.preventDefault();
     go(input.value);
   });
@@ -317,8 +335,11 @@ function renderBrowser(body) {
       if (action === 'back' && index > 0) { index -= 1; show(history[index]); }
       if (action === 'forward' && index < history.length - 1) { index += 1; show(history[index]); }
       if (action === 'reload') show(history[index]);
+      if (action === 'home') push({ type: 'home' });
     });
   });
+
+  body.querySelector('[data-newtab]').addEventListener('click', () => push({ type: 'home' }));
 
   home();
 }
@@ -458,10 +479,10 @@ export const apps = {
     render: renderFiles,
   },
   browser: {
-    name: 'Edge',
-    title: 'Edge — DuckDuckGo',
-    tile: 'tile-edge',
-    desc: 'Search DuckDuckGo privately or open an address.',
+    name: 'Study Hub',
+    title: 'The Study Hub Browser',
+    tile: 'tile-study',
+    desc: 'Search, read and study — all in one place.',
     render: renderBrowser,
   },
   notes: {
