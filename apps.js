@@ -264,9 +264,20 @@ const GAMES_URL = 'https://cdn.jsdelivr.net/gh/VoidNetworkOnTop/pecho@main/loade
 
 function renderGames(body) {
   body.innerHTML = `
-    <div class="games">
-      <p class="games-note">None of these games are made by me — all credit goes to the original owner.</p>
-      <iframe class="games-frame" src="${GAMES_URL}" title="Games" allow="fullscreen; autoplay" referrerpolicy="no-referrer"></iframe>
+    <div class="embed">
+      <p class="embed-note">None of these games are made by me — all credit goes to the original owner.</p>
+      <iframe class="embed-frame" src="${GAMES_URL}" title="Games" allow="fullscreen; autoplay" referrerpolicy="no-referrer"></iframe>
+    </div>`;
+}
+
+/* ---------- Movies ---------- */
+const MOVIES_URL = 'https://thd.sagarshrestha1999.com.np/movies';
+
+function renderMovies(body) {
+  body.innerHTML = `
+    <div class="embed">
+      <p class="embed-note">None of this is made by me — all credit goes to whoever owns this site.</p>
+      <iframe class="embed-frame" src="${MOVIES_URL}" title="Movies" allow="fullscreen; autoplay" referrerpolicy="no-referrer"></iframe>
     </div>`;
 }
 
@@ -285,6 +296,13 @@ export const apps = {
     tile: 'tile-games',
     desc: 'A pile of browser games, hosted by their original owner.',
     render: renderGames,
+  },
+  movies: {
+    name: 'Movies',
+    title: 'Movies',
+    tile: 'tile-movies',
+    desc: 'Movies hosted by someone else — all credit to them.',
+    render: renderMovies,
   },
   browser: {
     name: 'Proxy finds',
