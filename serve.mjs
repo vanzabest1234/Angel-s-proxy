@@ -1,7 +1,6 @@
 import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { extname, join, normalize, relative } from 'node:path';
-import { handle as handleAngelProxy } from './angels-proxy/server.mjs';
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = process.env.APP_ROOT || '/workspace';
@@ -278,11 +277,6 @@ async function handleAi(req, res) {
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const path = decodeURIComponent(url.pathname);
-
-  /* Angel's Proxy lives in its own project folder and handles its own routes. */
-  if (path === '/angels-proxy' || path.startsWith('/angels-proxy/')) {
-    return handleAngelProxy(req, res, '/angels-proxy');
-  }
 
   if (path === '/health') {
     res.writeHead(200, { 'content-type': 'text/plain' });
