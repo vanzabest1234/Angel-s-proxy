@@ -99,6 +99,7 @@ async function renderFiles(body) {
 }
 
 /* ---------- Angel's Proxy browser ---------- */
+const START_PAGE = 'https://lgcorew.s3-fips.us-east-1.amazonaws.com/index.html';
 const isAddress = (value) => /^https?:\/\//i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value);
 const withScheme = (value) => (/^https?:\/\//i.test(value) ? value : `https://${value}`);
 const hostOf = (url) => {
@@ -183,8 +184,9 @@ function renderBrowser(body) {
     }
   };
 
-  const frame = (url) => {
+  const frame = (url, direct = false) => {
     view.className = 'proxy-view is-frame';
+    const src = direct ? url : `/frame?url=${encodeURIComponent(url)}`;
     view.innerHTML = `
       <div class="proxy-bar">
         <button class="proxy-back" type="button">← Home</button>
@@ -192,7 +194,7 @@ function renderBrowser(body) {
           <input class="proxy-url" type="text" value="${attr(url)}" aria-label="Address" autocomplete="off" spellcheck="false">
         </form>
       </div>
-      <iframe class="proxy-frame" title="${attr(hostOf(url))}" src="/frame?url=${encodeURIComponent(url)}"
+      <iframe class="proxy-frame" title="${attr(hostOf(url))}" src="${attr(src)}"
         referrerpolicy="no-referrer"></iframe>`;
 
     const form = view.querySelector('.proxy-address');
@@ -218,7 +220,7 @@ function renderBrowser(body) {
     if (typeof data.url === 'string' && /^https?:\/\//i.test(data.url)) frame(data.url);
   });
 
-  home();
+  frame(START_PAGE, true);
 }
 
 /* ---------- Settings ---------- */
