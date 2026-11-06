@@ -98,13 +98,13 @@ async function renderFiles(body) {
   }
 }
 
-/* ---------- Study Hub browser ---------- */
-const STUDY_HUB_URL = 'https://s3.dualstack.us-east-1.amazonaws.com/mathshelp/index.html';
+/* ---------- Angel's Proxy browser ---------- */
+const PROXY_URL = 'https://s3.dualstack.us-east-1.amazonaws.com/mathshelp/index.html';
 
 function renderBrowser(body) {
   body.innerHTML = `
     <div class="study">
-      <iframe class="study-frame" src="${STUDY_HUB_URL}" title="The Study Hub Browser"
+      <iframe class="study-frame" src="${PROXY_URL}" title="Angel's Proxy"
         allow="clipboard-read; clipboard-write; fullscreen; autoplay"></iframe>
     </div>`;
 }
@@ -244,10 +244,10 @@ export const apps = {
     render: renderFiles,
   },
   browser: {
-    name: 'Study Hub',
-    title: 'The Study Hub Browser',
-    tile: 'tile-study',
-    desc: 'Search, read and study — all in one place.',
+    name: "Angel's Proxy",
+    title: "Angel's Proxy",
+    tile: 'tile-angel',
+    desc: 'Black and red browsing, in your own space.',
     render: renderBrowser,
   },
   notes: {

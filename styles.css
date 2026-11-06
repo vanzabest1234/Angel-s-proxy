@@ -290,10 +290,32 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
 
 .browser-page { flex: 1; min-height: 0; overflow: auto; background: #fff; position: relative; }
 
-/* ---------- Study Hub browser ---------- */
-.study { display: flex; flex-direction: column; height: 100%; background: #f4f9ff; }
+/* ---------- Angel's Proxy browser ---------- */
+.study { display: flex; flex-direction: column; height: 100%; background: #000; }
 
-.study-frame { flex: 1; width: 100%; border: 0; background: #fff; }
+.study-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #000;
+  filter: invert(1) hue-rotate(-30deg) saturate(1.2) contrast(1.05);
+}
+
+.window[data-app="browser"] {
+  background: #000;
+  border-color: rgba(255, 59, 77, 0.55);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(255, 59, 77, 0.38);
+}
+
+.window[data-app="browser"] .titlebar { background: #0a0a0c; border-bottom: 1px solid rgba(255, 59, 77, 0.45); }
+.window[data-app="browser"].is-active .titlebar { background: #140b0e; }
+.window[data-app="browser"] .win-title { color: #ff5a66; font-weight: 600; letter-spacing: 0.02em; }
+.window[data-app="browser"] .wc:hover { background: rgba(255, 59, 77, 0.18); }
+.window[data-app="browser"] .wc-min::before { background: #c9c9cf; }
+.window[data-app="browser"] .wc-max::before { border-color: #c9c9cf; }
+.window[data-app="browser"] .wc-close::before { background: #ff5a66; }
+.window[data-app="browser"] .wc-close:hover { background: #e01b2b; }
+.window[data-app="browser"] .wc-close:hover::before { background: #fff; }
 
 .ddg-home { display: grid; justify-items: center; gap: 14px; padding: clamp(26px, 7vh, 64px) 24px; }
 .ddg-word { font-size: clamp(26px, 5vw, 36px); font-weight: 600; color: #de5833; letter-spacing: -0.02em; }
