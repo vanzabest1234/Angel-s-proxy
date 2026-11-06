@@ -69,6 +69,7 @@ function renderBrowser(body) {
         <form class="address" role="search">
           <input class="url" aria-label="Search or enter an address" placeholder="Search DuckDuckGo or enter an address" autocomplete="off" spellcheck="false">
         </form>
+        <span class="browser-wip">Work in progress</span>
       </div>
       <div class="browser-page" data-page></div>
     </div>`;
