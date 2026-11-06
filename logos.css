@@ -20,6 +20,11 @@
     linear-gradient(150deg, #4fd1ff, #1288d8 58%, #0a5fa0);
 }
 
+.tile-games {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='2.5' y='7' width='19' height='10.5' rx='5.2' fill='white'/><g fill='%234c1d95'><rect x='6.4' y='11' width='2' height='3.4' rx='0.7'/><rect x='5.7' y='11.7' width='3.4' height='2' rx='0.7'/><circle cx='16.3' cy='11.6' r='1.15'/><circle cx='18.4' cy='13.6' r='1.15'/></g></svg>"),
+    linear-gradient(150deg, #b48cff, #7c3aed 60%, #4c1d95);
+}
+
 .tile-store {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6.2 8.4h11.6l-1 10.4a1.6 1.6 0 0 1-1.6 1.4H8.8a1.6 1.6 0 0 1-1.6-1.4L6.2 8.4Z' fill='white'/><path d='M9.2 8.4a2.8 2.8 0 0 1 5.6 0' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9.4' cy='12.4' r='1' fill='%232b7bff'/><circle cx='14.6' cy='12.4' r='1' fill='%232b7bff'/></svg>"),
     linear-gradient(150deg, #7ad4ff, #2b7bff 65%, #1a3fb8);

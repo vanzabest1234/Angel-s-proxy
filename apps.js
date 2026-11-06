@@ -480,6 +480,17 @@ function renderStore(body, ctx) {
   });
 }
 
+/* ---------- Games ---------- */
+const GAMES_URL = 'https://cdn.jsdelivr.net/gh/VoidNetworkOnTop/pecho@main/loader.svg';
+
+function renderGames(body) {
+  body.innerHTML = `
+    <div class="games">
+      <p class="games-note">None of these games are made by me — all credit goes to the original owner.</p>
+      <iframe class="games-frame" src="${GAMES_URL}" title="Games" allow="fullscreen; autoplay" referrerpolicy="no-referrer"></iframe>
+    </div>`;
+}
+
 /* ---------- registry ---------- */
 export const apps = {
   readme: {
@@ -488,6 +499,13 @@ export const apps = {
     tile: 'tile-readme',
     desc: 'The repository README, rendered as a document.',
     render: renderReadme,
+  },
+  games: {
+    name: 'Games',
+    title: 'Games',
+    tile: 'tile-games',
+    desc: 'A pile of browser games, hosted by their original owner.',
+    render: renderGames,
   },
   browser: {
     name: 'Edge',
