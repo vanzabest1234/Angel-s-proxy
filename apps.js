@@ -117,7 +117,7 @@ function renderBrowser(body) {
         <div class="proxy-brand">
           <span class="proxy-mark" aria-hidden="true"></span>
           <div>
-            <h1 class="proxy-word">Angel's <span>Proxy</span></h1>
+            <h1 class="proxy-word">Ather's <span>Legendary Proxy</span></h1>
             <p class="proxy-sub">Your own black and red browser</p>
           </div>
         </div>
@@ -358,8 +358,8 @@ export const apps = {
     render: renderFiles,
   },
   browser: {
-    name: "Angel's Proxy",
-    title: "Angel's Proxy",
+    name: "Ather's Legendary Proxy",
+    title: "Ather's Legendary Proxy",
     tile: 'tile-angel',
     desc: 'Black and red browsing, in your own space.',
     render: renderBrowser,
