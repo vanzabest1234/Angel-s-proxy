@@ -339,9 +339,40 @@ const WALLPAPERS = [
   ['mint', 'Mint'],
 ];
 
+const WALLPAPER_MAX = 1920;
+
+function readCustomWallpaper(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error('Could not read the file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Unsupported image'));
+      img.onload = () => {
+        const scale = Math.min(1, WALLPAPER_MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.86));
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function applyCustomWallpaper(dataUrl) {
+  localStorage.setItem('angel.wallpaper.custom', dataUrl);
+  localStorage.setItem('angel.wallpaper', 'custom');
+  document.documentElement.style.setProperty('--wallpaper-image', `url("${dataUrl}")`);
+  document.documentElement.dataset.wallpaper = 'custom';
+}
+
 function renderSettings(body) {
   const currentAccent = localStorage.getItem('angel.accent') || ACCENTS[0][0];
   const currentWallpaper = localStorage.getItem('angel.wallpaper') || 'bloom';
+  const customWallpaper = localStorage.getItem('angel.wallpaper.custom') || '';
 
   body.innerHTML = `
     <div class="settings">
@@ -358,7 +389,14 @@ function renderSettings(body) {
       <h2>Wallpaper</h2>
       <div class="wallpapers">
         ${WALLPAPERS.map(([id, name]) => `<button class="wp${id === currentWallpaper ? ' is-on' : ''}" data-wallpaper="${id}"><span class="wp-swatch wp-${id}"></span><em>${name}</em></button>`).join('')}
+        <button class="wp${currentWallpaper === 'custom' ? ' is-on' : ''}" data-wallpaper="custom"><span class="wp-swatch wp-custom"></span><em>Custom</em></button>
       </div>
+      <div class="wallpaper-tools">
+        <button type="button" class="wall-pick">Choose image…</button>
+        <button type="button" class="wall-clear"${customWallpaper ? '' : ' hidden'}>Remove</button>
+        <span class="wall-status" data-wall-status>PNG, JPG or WebP — saved in this browser.</span>
+      </div>
+      <input type="file" id="wall-file" accept="image/*" hidden>
 
       <h2>About</h2>
       <dl class="about">
@@ -378,12 +416,58 @@ function renderSettings(body) {
     });
   });
 
+  const fileInput = body.querySelector('#wall-file');
+  const customTile = body.querySelector('[data-wallpaper="custom"]');
+  const customSwatch = body.querySelector('.wp-custom');
+  const clearBtn = body.querySelector('.wall-clear');
+  const status = body.querySelector('[data-wall-status]');
+  const idleStatus = 'PNG, JPG or WebP — saved in this browser.';
+
+  if (customWallpaper) customSwatch.style.backgroundImage = `url("${customWallpaper}")`;
+
   body.querySelectorAll('[data-wallpaper]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      document.documentElement.dataset.wallpaper = btn.dataset.wallpaper;
-      localStorage.setItem('angel.wallpaper', btn.dataset.wallpaper);
+      const id = btn.dataset.wallpaper;
+      if (id === 'custom') {
+        if (!localStorage.getItem('angel.wallpaper.custom')) { fileInput.click(); return; }
+        applyCustomWallpaper(localStorage.getItem('angel.wallpaper.custom'));
+        mark('[data-wallpaper]', btn);
+        return;
+      }
+      document.documentElement.dataset.wallpaper = id;
+      localStorage.setItem('angel.wallpaper', id);
       mark('[data-wallpaper]', btn);
     });
+  });
+
+  body.querySelector('.wall-pick').addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    status.textContent = 'Applying…';
+    try {
+      const dataUrl = await readCustomWallpaper(file);
+      applyCustomWallpaper(dataUrl);
+      customSwatch.style.backgroundImage = `url("${dataUrl}")`;
+      clearBtn.hidden = false;
+      mark('[data-wallpaper]', customTile);
+      status.textContent = 'Saved in this browser.';
+    } catch {
+      status.textContent = 'That image could not be used — try a smaller PNG, JPG or WebP.';
+    }
+    fileInput.value = '';
+  });
+
+  clearBtn.addEventListener('click', () => {
+    localStorage.removeItem('angel.wallpaper.custom');
+    localStorage.setItem('angel.wallpaper', 'bloom');
+    document.documentElement.style.removeProperty('--wallpaper-image');
+    document.documentElement.dataset.wallpaper = 'bloom';
+    customSwatch.style.backgroundImage = '';
+    clearBtn.hidden = true;
+    status.textContent = idleStatus;
+    mark('[data-wallpaper]', body.querySelector('[data-wallpaper="bloom"]'));
   });
 }
 

@@ -85,6 +85,18 @@ html[data-wallpaper="mint"] .bloom-a { background: radial-gradient(circle at 36%
 html[data-wallpaper="mint"] .bloom-b { background: radial-gradient(circle at 46% 48%, #9ef7d8 0%, #22b3a3 45%, rgba(34, 179, 163, 0) 75%); opacity: 0.45; }
 html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50% 50%, #146a8a 0%, rgba(20, 106, 138, 0) 68%); opacity: 0.5; }
 
+html[data-wallpaper="custom"] .wallpaper { background: #050a15; }
+html[data-wallpaper="custom"] .wallpaper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--wallpaper-image, none);
+  background-size: cover;
+  background-position: center;
+}
+html[data-wallpaper="custom"] .bloom,
+html[data-wallpaper="custom"] .ribbon { display: none; }
+
 /* ---------- desktop icons ---------- */
 .desktop-icons {
   position: absolute;
@@ -445,6 +457,35 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
 .wp-bloom { background: linear-gradient(140deg, #1b3f8f, #5b3a9e 55%, #0b1730); }
 .wp-sunset { background: linear-gradient(140deg, #ff9a4d, #d6455d 60%, #2b1030); }
 .wp-mint { background: linear-gradient(140deg, #2fd6a8, #1f8fb8 60%, #07202a); }
+.wp-custom {
+  background-color: #eef1f6;
+  background-image: repeating-linear-gradient(45deg, #eef1f6 0 6px, #e0e5ee 6px 12px);
+  background-size: cover;
+  background-position: center;
+}
+
+.wallpaper-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.wall-pick {
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #06212e;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+.wall-clear {
+  border: 1px solid #d7dbe3;
+  border-radius: 6px;
+  background: #fff;
+  color: #2a2e35;
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.wall-clear:hover { background: #f2f4f8; }
+.wall-status { font-size: 12px; color: #6b7280; }
 
 .about { margin: 0; display: grid; gap: 8px; }
 .about div { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 6px; border-bottom: 1px solid #eceef2; font-size: 12.5px; }

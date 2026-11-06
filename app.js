@@ -132,7 +132,13 @@ function tick() {
 const savedAccent = localStorage.getItem('angel.accent');
 if (savedAccent) document.documentElement.style.setProperty('--accent', savedAccent);
 const savedWallpaper = localStorage.getItem('angel.wallpaper');
-if (savedWallpaper) document.documentElement.dataset.wallpaper = savedWallpaper;
+const savedCustomWallpaper = localStorage.getItem('angel.wallpaper.custom');
+if (savedWallpaper === 'custom' && savedCustomWallpaper) {
+  document.documentElement.style.setProperty('--wallpaper-image', `url("${savedCustomWallpaper}")`);
+  document.documentElement.dataset.wallpaper = 'custom';
+} else if (savedWallpaper && savedWallpaper !== 'custom') {
+  document.documentElement.dataset.wallpaper = savedWallpaper;
+}
 
 tick();
 setInterval(tick, 1000);
