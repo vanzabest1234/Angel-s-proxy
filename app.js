@@ -118,6 +118,21 @@ document.querySelectorAll('[data-app]').forEach((el) => {
   el.addEventListener('click', () => openApp(el.dataset.app));
 });
 
+/* ---------- desktop background ---------- */
+const desktopEl = document.querySelector('.desktop');
+
+function sendToBackground() {
+  open.forEach(({ el }) => {
+    el.classList.remove('is-active');
+    el.classList.add('is-hidden');
+  });
+}
+
+desktopEl.addEventListener('click', (event) => {
+  if (event.target.closest('.window, .taskbar, .start-menu, .desktop-icons')) return;
+  sendToBackground();
+});
+
 /* ---------- clock ---------- */
 const timeEl = document.getElementById('clock-time');
 const dateEl = document.getElementById('clock-date');
