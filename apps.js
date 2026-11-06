@@ -362,6 +362,7 @@ export const apps = {
     title: "Ather's Legendary Proxy",
     tile: 'tile-angel',
     desc: 'Black and red browsing, in your own space.',
+    maximized: true,
     render: renderBrowser,
   },
   notes: {

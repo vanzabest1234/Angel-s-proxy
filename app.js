@@ -103,6 +103,7 @@ export function openApp(id) {
   let entry = open.get(id);
   if (!entry) {
     const win = createWindow({ id, title: def.title, body: null });
+    if (def.maximized) win.el.classList.add('is-max');
     entry = { el: win.el, body: win.body };
     open.set(id, entry);
     def.render(win.body, { openApp, appsList: apps });
