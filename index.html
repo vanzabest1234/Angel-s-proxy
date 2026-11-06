@@ -29,12 +29,7 @@
       <span class="ribbon"></span>
     </div>
 
-    <div class="desktop-icons">
-      <button class="desk-icon" data-app="readme">
-        <span class="tile tile-readme" aria-hidden="true"></span>
-        <span class="desk-label">README</span>
-      </button>
-    </div>
+    <div class="desktop-icons" id="desktop-icons"></div>
 
     <div class="windows" id="windows"></div>
 
@@ -55,6 +50,7 @@
         <button class="pin" data-app="readme"><span class="tile tile-readme"></span><span>README</span></button>
         <button class="pin" data-app="games"><span class="tile tile-games"></span><span>Games</span></button>
         <button class="pin" data-app="movies"><span class="tile tile-movies"></span><span>Movies</span></button>
+        <button class="pin" data-app="music"><span class="tile tile-music"></span><span>Music</span></button>
         <button class="pin" data-app="browser"><span class="tile tile-proxy"></span><span>Proxy finds</span></button>
         <button class="pin" data-app="store"><span class="tile tile-store"></span><span>Store</span></button>
         <button class="pin" data-app="notes"><span class="tile tile-notes"></span><span>Notes</span></button>
@@ -95,6 +91,7 @@
         <button class="tb-btn tb-app" data-app="readme" aria-label="README"><span class="tile tile-readme"></span></button>
         <button class="tb-btn tb-app" data-app="games" aria-label="Games"><span class="tile tile-games"></span></button>
         <button class="tb-btn tb-app" data-app="movies" aria-label="Movies"><span class="tile tile-movies"></span></button>
+        <button class="tb-btn tb-app" data-app="music" aria-label="Music"><span class="tile tile-music"></span></button>
         <button class="tb-btn tb-app" data-app="browser" aria-label="Proxy finds"><span class="tile tile-proxy"></span></button>
         <button class="tb-btn tb-app" data-app="store" aria-label="Store"><span class="tile tile-store"></span></button>
         <button class="tb-btn tb-app" data-app="notes" aria-label="Notes"><span class="tile tile-notes"></span></button>
@@ -106,6 +103,15 @@
         <button class="tb-btn tb-app" data-app="settings" aria-label="Settings"><span class="tile tile-settings"></span></button>
       </div>
       <div class="tray">
+        <div class="now-playing" id="now-playing" hidden>
+          <button class="np-title" data-np-title type="button" title="Open Music"></button>
+          <button class="np-btn" data-np-toggle aria-label="Pause" type="button">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path class="np-pause" d="M4.6 3.4h2.4v9.2H4.6zM9 3.4h2.4v9.2H9z" fill="currentColor"/><path class="np-play" d="M5.4 3.4 12 8l-6.6 4.6z" fill="currentColor"/></svg>
+          </button>
+          <button class="np-btn" data-np-close aria-label="Stop" type="button">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.2 4.2 11.8 11.8M11.8 4.2 4.2 11.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </button>
+        </div>
         <span class="tray-icons" aria-hidden="true">
           <svg viewBox="0 0 20 20"><path d="M2 12.5a11 11 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M5.5 15a6.5 6.5 0 0 1 9 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="17" r="1" fill="currentColor"/></svg>
           <svg viewBox="0 0 20 20"><path d="M4 8.5v3h2.5L11 15V5L6.5 8.5z" fill="currentColor"/><path d="M13.5 7.5a3.5 3.5 0 0 1 0 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>

@@ -281,6 +281,47 @@ function renderMovies(body) {
     </div>`;
 }
 
+/* ---------- Music ---------- */
+function renderMusic(body) {
+  body.innerHTML = `
+    <div class="music">
+      <div class="music-head">
+        <span class="music-art" aria-hidden="true"></span>
+        <div>
+          <strong data-track>No song yet</strong>
+          <em data-state>Pick a song from your device to start.</em>
+        </div>
+      </div>
+      <audio class="music-audio" data-audio controls hidden></audio>
+      <button class="music-pick" type="button">
+        <input type="file" accept="audio/*" data-file hidden>
+        Choose a song
+      </button>
+    </div>`;
+
+  const audio = body.querySelector('[data-audio]');
+  const track = body.querySelector('[data-track]');
+  const state = body.querySelector('[data-state]');
+  const file = body.querySelector('[data-file]');
+
+  body.querySelector('.music-pick').addEventListener('click', () => file.click());
+
+  file.addEventListener('change', () => {
+    const picked = file.files && file.files[0];
+    if (!picked) return;
+    audio.src = URL.createObjectURL(picked);
+    audio.hidden = false;
+    track.textContent = picked.name.replace(/\.[^.]+$/, '');
+    state.textContent = 'Playing';
+    audio.play().catch(() => { state.textContent = 'Press play to start'; });
+    window.dispatchEvent(new CustomEvent('angel:nowplaying', { detail: { audio, title: track.textContent } }));
+  });
+
+  audio.addEventListener('play', () => { state.textContent = 'Playing'; });
+  audio.addEventListener('pause', () => { state.textContent = 'Paused'; });
+  audio.addEventListener('ended', () => { state.textContent = 'Finished'; });
+}
+
 /* ---------- registry ---------- */
 export const apps = {
   readme: {
@@ -303,6 +344,13 @@ export const apps = {
     tile: 'tile-movies',
     desc: 'Movies hosted by someone else — all credit to them.',
     render: renderMovies,
+  },
+  music: {
+    name: 'Music',
+    title: 'Music',
+    tile: 'tile-music',
+    desc: 'Play a song and it shows up in the taskbar.',
+    render: renderMusic,
   },
   browser: {
     name: 'Proxy finds',

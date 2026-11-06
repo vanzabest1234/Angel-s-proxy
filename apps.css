@@ -302,3 +302,31 @@
   .ai-rail-head { padding-bottom: 6px; }
   .ai-model { display: none; }
 }
+
+/* ---------- Music ---------- */
+.tile-music { background: linear-gradient(150deg, #ffb0d1, #e0399b 58%, #8d1462); }
+.music { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px 22px; }
+.music-head { display: flex; align-items: center; gap: 14px; }
+.music-art {
+  width: 62px; height: 62px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 50%, #2a2a33 26%, transparent 27%),
+    linear-gradient(150deg, #ffb0d1, #e0399b 58%, #8d1462);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.music-head strong { display: block; font-size: 16px; }
+.music-head em { font-style: normal; font-size: 12px; color: #6b7280; }
+.music-audio { width: 100%; height: 34px; }
+.music-pick {
+  align-self: flex-start;
+  height: 34px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--accent, #0067c0);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.music-pick:hover { filter: brightness(1.08); }
