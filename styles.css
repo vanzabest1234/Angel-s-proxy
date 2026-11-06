@@ -412,6 +412,33 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   color: #9d8085;
 }
 
+.proxy-view.is-frame { background: #0b0608; }
+
+.proxy-address { flex: 1; min-width: 0; display: flex; }
+
+.proxy-url {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 59, 77, 0.35);
+  background: #140b0e;
+  color: #f7ecee;
+  font-size: 12px;
+}
+
+.proxy-url:focus { outline: none; border-color: #ff3b4d; box-shadow: 0 0 0 2px rgba(255, 59, 77, 0.18); }
+
+.proxy-frame {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: block;
+  border: 0;
+  background: #fff;
+}
+
 .proxy-doc {
   flex: 1;
   min-height: 0;

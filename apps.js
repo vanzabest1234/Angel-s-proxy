@@ -105,14 +105,6 @@ const hostOf = (url) => {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
 };
 
-function proxyBlock(block) {
-  if (block.t === 'h') return `<h3 class="proxy-h">${esc(block.text)}</h3>`;
-  if (block.t === 'li') return `<p class="proxy-li">${esc(block.text)}</p>`;
-  if (block.t === 'pre') return `<pre class="proxy-pre">${esc(block.text)}</pre>`;
-  if (block.t === 'q') return `<blockquote class="proxy-q">${esc(block.text)}</blockquote>`;
-  return `<p>${esc(block.text)}</p>`;
-}
-
 function renderBrowser(body) {
   body.innerHTML = '<div class="proxy"><div class="proxy-view"></div></div>';
   const view = body.querySelector('.proxy-view');
@@ -144,7 +136,7 @@ function renderBrowser(body) {
       event.preventDefault();
       const query = input.value.trim();
       if (!query) return input.focus();
-      return isAddress(query) ? page(withScheme(query)) : results(query);
+      return isAddress(query) ? frame(withScheme(query)) : results(query);
     });
     input.focus();
     input.select();
@@ -183,7 +175,7 @@ function renderBrowser(body) {
       doc.querySelectorAll('.proxy-result-title').forEach((button) => {
         button.addEventListener('click', (event) => {
           event.stopPropagation();
-          page(button.dataset.href);
+          frame(button.dataset.href);
         });
       });
     } catch {
@@ -191,22 +183,40 @@ function renderBrowser(body) {
     }
   };
 
-  const page = async (url) => {
-    const doc = shell(hostOf(url), 'Loading…');
-    try {
-      const res = await fetch(`/read?url=${encodeURIComponent(url)}`);
-      const data = await res.json();
-      const blocks = data.blocks || [];
-      doc.innerHTML = blocks.length
-        ? `<h2 class="proxy-title">${esc(data.title || hostOf(url))}</h2>
-           <p class="proxy-site">${esc(data.site || hostOf(url))}</p>
-           ${blocks.map(proxyBlock).join('')}`
-        : `<h2 class="proxy-title">${esc(data.title || hostOf(url))}</h2>
-           <p class="proxy-loading">${esc(data.note || 'Nothing readable on that page.')}</p>`;
-    } catch {
-      doc.innerHTML = '<p class="proxy-loading">That page did not load.</p>';
-    }
+  const frame = (url) => {
+    view.className = 'proxy-view is-frame';
+    view.innerHTML = `
+      <div class="proxy-bar">
+        <button class="proxy-back" type="button">← Home</button>
+        <form class="proxy-address">
+          <input class="proxy-url" type="text" value="${attr(url)}" aria-label="Address" autocomplete="off" spellcheck="false">
+        </form>
+      </div>
+      <iframe class="proxy-frame" title="${attr(hostOf(url))}" src="/frame?url=${encodeURIComponent(url)}"
+        referrerpolicy="no-referrer"></iframe>`;
+
+    const form = view.querySelector('.proxy-address');
+    const input = view.querySelector('.proxy-url');
+    view.querySelector('.proxy-back').addEventListener('click', (event) => {
+      event.stopPropagation();
+      home();
+    });
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const next = input.value.trim();
+      if (!next) return input.focus();
+      return isAddress(next) ? frame(withScheme(next)) : results(next);
+    });
   };
+
+  window.addEventListener('message', (event) => {
+    if (!view.isConnected) return;
+    const data = event.data;
+    if (!data || data.source !== 'angels-proxy' || data.type !== 'navigate') return;
+    const frameEl = view.querySelector('.proxy-frame');
+    if (!frameEl || frameEl.contentWindow !== event.source) return;
+    if (typeof data.url === 'string' && /^https?:\/\//i.test(data.url)) frame(data.url);
+  });
 
   home();
 }

@@ -34,6 +34,42 @@ const PRIVATE = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|0\.|\[::1\])/i;
 
 const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/* Injected into framed pages so clicks and GET forms stay inside the frame view. */
+const BRIDGE = `<script>(function(){
+  function send(url){ try { parent.postMessage({ source: "angels-proxy", type: "navigate", url: url }, "*"); } catch (e) {} }
+  function web(url){ return url && (url.protocol === "http:" || url.protocol === "https:"); }
+  document.addEventListener("click", function(event){
+    var a = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+    if (!a || a.target === "_blank" || a.hasAttribute("download")) return;
+    var raw = a.getAttribute("href") || "";
+    if (!raw || raw.charAt(0) === "#") return;
+    var url;
+    try { url = new URL(raw, document.baseURI); } catch (e) { return; }
+    if (!web(url)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    send(url.href);
+  }, true);
+  document.addEventListener("submit", function(event){
+    var form = event.target;
+    if (!form || String(form.method || "get").toLowerCase() !== "get") return;
+    var url;
+    try { url = new URL(form.getAttribute("action") || document.baseURI, document.baseURI); } catch (e) { return; }
+    new FormData(form).forEach(function(value, key){ if (typeof value === "string") url.searchParams.set(key, value); });
+    if (!web(url)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    send(url.href);
+  }, true);
+})();</script>`;
+
+const frameNote = (res, title, text) => {
+  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+  res.end(`<!doctype html><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+<style>html,body{height:100%;margin:0}body{display:grid;place-items:center;background:#0b0608;color:#e9dcdd;font:14px/1.6 system-ui,sans-serif;padding:24px;text-align:center}strong{display:block;margin-bottom:6px;color:#ff6b77;font-size:15px}</style>
+<div><strong>${escapeHtml(title)}</strong>${escapeHtml(text)}</div>`);
+};
+
 const decode = (s) => s
   .replace(/&nbsp;/g, ' ')
   .replace(/&amp;/g, '&')
@@ -157,6 +193,46 @@ async function readPage(res, target) {
     return json(res, 200, { url: dest.href, ...extract(html, dest) });
   } catch {
     return json(res, 200, { url: dest.href, title: dest.hostname, site: dest.hostname, blocks: [], note: 'The site did not answer.' });
+  }
+}
+
+async function framedPage(res, target) {
+  let dest;
+  try { dest = new URL(target); } catch { return frameNote(res, 'Bad address', 'That is not a web address.'); }
+  if (!/^https?:$/.test(dest.protocol) || PRIVATE.test(dest.hostname)) {
+    return frameNote(res, 'Blocked', 'That address cannot be opened here.');
+  }
+
+  try {
+    const upstream = await fetch(dest.href, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(20000),
+      headers: {
+        'user-agent': UA,
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.9',
+      },
+    });
+    const type = upstream.headers.get('content-type') || '';
+    if (!/text\/html|application\/xhtml/i.test(type)) {
+      return frameNote(res, dest.hostname, `That link is ${type.split(';')[0] || 'a file'}, not a web page.`);
+    }
+
+    let html = (await upstream.text()).slice(0, 900000);
+    html = html
+      .replace(/<meta[^>]+http-equiv=["']?content-security-policy["']?[^>]*>/gi, '')
+      .replace(/<base\b[^>]*>/gi, '');
+
+    const href = escapeHtml(upstream.url || dest.href);
+    const base = `<base href="${href}">`;
+    const head = html.match(/<head[^>]*>/i);
+    html = head ? html.replace(head[0], `${head[0]}${base}`) : `${base}${html}`;
+    html = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${BRIDGE}</body>`) : `${html}${BRIDGE}`;
+
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+    return res.end(html);
+  } catch {
+    return frameNote(res, dest.hostname, 'That site did not answer.');
   }
 }
 
@@ -360,6 +436,10 @@ createServer(async (req, res) => {
 
   if (path === '/read') {
     return readPage(res, url.searchParams.get('url') || '');
+  }
+
+  if (path === '/frame') {
+    return framedPage(res, url.searchParams.get('url') || '');
   }
 
   if (path === '/search') {
