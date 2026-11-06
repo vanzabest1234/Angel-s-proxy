@@ -1,0 +1,57 @@
+/* ---------- app logos (glyph layer over each tile gradient) ---------- */
+.tile {
+  background-repeat: no-repeat;
+  background-position: center, 0 0;
+  background-size: 66% 66%, 100% 100%;
+}
+
+.tile-readme {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='6' y='3.5' width='12' height='17' rx='2.2' fill='white'/><g stroke='%232f5bff' stroke-width='1.6' stroke-linecap='round'><path d='M9 9h6M9 12.5h6M9 16h4'/></g></svg>"),
+    linear-gradient(150deg, #5aa9ff, #2f5bff 62%, #1b2f9e);
+}
+
+.tile-pc {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='2.5' y='4.5' width='19' height='12' rx='2' fill='white'/><rect x='4.8' y='6.8' width='14.4' height='7.4' rx='1' fill='%230f6fb0'/><rect x='9.5' y='17.4' width='5' height='2' fill='white'/><rect x='7' y='19' width='10' height='1.8' rx='0.9' fill='white'/></svg>"),
+    linear-gradient(150deg, #8fd8ff, #2aa7e8 60%, #0f6fb0);
+}
+
+.tile-edge {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M20.6 9.4A9 9 0 1 0 12 21' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round'/><path d='M4.2 13.4h9.6' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round'/></svg>"),
+    linear-gradient(150deg, #4fd1ff, #1288d8 58%, #0a5fa0);
+}
+
+.tile-store {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6.2 8.4h11.6l-1 10.4a1.6 1.6 0 0 1-1.6 1.4H8.8a1.6 1.6 0 0 1-1.6-1.4L6.2 8.4Z' fill='white'/><path d='M9.2 8.4a2.8 2.8 0 0 1 5.6 0' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9.4' cy='12.4' r='1' fill='%232b7bff'/><circle cx='14.6' cy='12.4' r='1' fill='%232b7bff'/></svg>"),
+    linear-gradient(150deg, #7ad4ff, #2b7bff 65%, #1a3fb8);
+}
+
+.tile-notes {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='4.5' y='3.5' width='15' height='17' rx='2.2' fill='white'/><rect x='4.5' y='3.5' width='15' height='4' rx='2.2' fill='%23ffb300'/><g stroke='%23d99b00' stroke-width='1.6' stroke-linecap='round'><path d='M8 11h8M8 14.5h8M8 18h5'/></g></svg>"),
+    linear-gradient(150deg, #ffe98f, #ffc233 60%, #d99b00);
+}
+
+.tile-calc {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='4.5' y='3' width='15' height='18' rx='2.4' fill='white'/><rect x='7' y='5.6' width='10' height='3.2' rx='1' fill='%2339424f'/><g fill='%2339424f'><rect x='7' y='11' width='3' height='3' rx='0.8'/><rect x='10.5' y='11' width='3' height='3' rx='0.8'/><rect x='14' y='11' width='3' height='3' rx='0.8'/><rect x='7' y='15.6' width='3' height='3' rx='0.8'/><rect x='10.5' y='15.6' width='3' height='3' rx='0.8'/><rect x='14' y='15.6' width='3' height='3' rx='0.8'/></g></svg>"),
+    linear-gradient(150deg, #b6c0cf, #6b7789 58%, #39424f);
+}
+
+.tile-calendar {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='3.5' y='4.5' width='17' height='16' rx='2.4' fill='white'/><rect x='3.5' y='4.5' width='17' height='4.4' rx='2.4' fill='%23e8442f'/><rect x='3.5' y='7' width='17' height='2' fill='%23e8442f'/><g fill='%23e8442f'><circle cx='8' cy='12.6' r='1.1'/><circle cx='12' cy='12.6' r='1.1'/><circle cx='16' cy='12.6' r='1.1'/><circle cx='8' cy='16.6' r='1.1'/><circle cx='12' cy='16.6' r='1.1'/><circle cx='16' cy='16.6' r='1.1'/></g></svg>"),
+    linear-gradient(150deg, #ff9a8a, #e8442f 60%, #ab2113);
+}
+
+.tile-weather {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='15.5' cy='8.5' r='3.4' fill='white'/><path d='M15.5 2.6v1.4M21.4 8.5h-1.4M20.2 3.8l-1 1M10.8 3.8l1 1' stroke='white' stroke-width='1.5' stroke-linecap='round'/><path d='M7.4 19.4a4.2 4.2 0 0 1-.5-8.4 5.4 5.4 0 0 1 10.3 1.5 3.5 3.5 0 0 1-.6 6.9H7.4Z' fill='white'/></svg>"),
+    linear-gradient(150deg, #ffe07a, #4fb3ff 55%, #1f6fd0);
+}
+
+.tile-terminal {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M5.5 7.5l5 4.8-5 4.8' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/><rect x='13' y='15.6' width='6.2' height='2.4' rx='1.2' fill='white'/></svg>"),
+    linear-gradient(150deg, #5a6678, #262e39 60%, #10141a);
+}
+
+
+.tile-settings {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g stroke='white' stroke-width='2.4' stroke-linecap='round'><path d='M12 2.9v2.4M12 18.7v2.4M4.4 12H2M22 12h-2.4M6.6 6.6L4.9 4.9M19.1 19.1l-1.7-1.7M6.6 17.4l-1.7 1.7M19.1 4.9l-1.7 1.7'/></g><circle cx='12' cy='12' r='7.1' fill='none' stroke='white' stroke-width='2.2'/><circle cx='12' cy='12' r='3.2' fill='white'/><circle cx='12' cy='12' r='1.3' fill='%234a5568'/></svg>"),
+    linear-gradient(150deg, #c9d3e0, #8290a5 60%, #4a5568);
+}
