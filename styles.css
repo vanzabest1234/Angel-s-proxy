@@ -145,8 +145,8 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   position: absolute;
   left: 50%; top: 50%;
   transform: translate(calc(-50% + var(--dx, 0px)), calc(-54% + var(--dy, 0px)));
-  width: min(760px, calc(100vw - 56px));
-  height: min(520px, calc(100vh - 140px));
+  width: min(940px, calc(100vw - 48px));
+  height: min(640px, calc(100vh - 100px));
   display: flex;
   flex-direction: column;
   border-radius: 10px;
@@ -158,15 +158,15 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
 }
 
 .window[data-app="browser"] {
-  width: min(880px, calc(100vw - 56px));
-  height: min(600px, calc(100vh - 140px));
+  width: min(1100px, calc(100vw - 40px));
+  height: min(700px, calc(100vh - 100px));
 }
 
-.window[data-app="store"] { width: min(820px, calc(100vw - 56px)); }
+.window[data-app="store"] { width: min(1000px, calc(100vw - 44px)); }
 
 .window[data-app="ai"] {
-  width: min(900px, calc(100vw - 56px));
-  height: min(620px, calc(100vh - 150px));
+  width: min(1060px, calc(100vw - 40px));
+  height: min(720px, calc(100vh - 100px));
 }
 
 .window.is-hidden { display: none; }
