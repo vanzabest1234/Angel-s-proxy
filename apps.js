@@ -357,13 +357,6 @@ export const apps = {
     desc: 'The repository README, rendered as a document.',
     render: renderReadme,
   },
-  files: {
-    name: 'This PC',
-    title: 'This PC — Angel-s-proxy',
-    tile: 'tile-pc',
-    desc: 'Browse the repository files and preview them.',
-    render: renderFiles,
-  },
   browser: {
     name: "Ather's Legendary Proxy",
     title: "Ather's Legendary Proxy",
