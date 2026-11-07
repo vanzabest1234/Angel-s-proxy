@@ -188,27 +188,8 @@ function renderBrowser(body) {
     view.className = 'proxy-view is-frame';
     const src = direct ? url : `/frame?url=${encodeURIComponent(url)}`;
     view.innerHTML = `
-      <div class="proxy-bar">
-        <button class="proxy-back" type="button">← Home</button>
-        <form class="proxy-address">
-          <input class="proxy-url" type="text" value="${attr(url)}" aria-label="Address" autocomplete="off" spellcheck="false">
-        </form>
-      </div>
       <iframe class="proxy-frame" title="${attr(hostOf(url))}" src="${attr(src)}"
         referrerpolicy="no-referrer"></iframe>`;
-
-    const form = view.querySelector('.proxy-address');
-    const input = view.querySelector('.proxy-url');
-    view.querySelector('.proxy-back').addEventListener('click', (event) => {
-      event.stopPropagation();
-      home();
-    });
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const next = input.value.trim();
-      if (!next) return input.focus();
-      return isAddress(next) ? frame(withScheme(next)) : results(next);
-    });
   };
 
   window.addEventListener('message', (event) => {
