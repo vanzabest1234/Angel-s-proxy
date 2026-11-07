@@ -70,6 +70,11 @@
     linear-gradient(150deg, #c3b2ff, #7b5cff 55%, #2f1f8f);
 }
 
+.tile-mzk {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='8' cy='17.2' r='2.9' fill='white'/><circle cx='17.2' cy='15.2' r='2.9' fill='white'/><path d='M9.9 17.2V7.4L20.1 5.1v10.1' fill='none' stroke='white' stroke-width='2.1' stroke-linejoin='round' stroke-linecap='round'/></svg>"),
+    linear-gradient(150deg, #a79bff, #6b5ef5 58%, #3b2fb0);
+}
+
 .tile-settings {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g stroke='white' stroke-width='2.4' stroke-linecap='round'><path d='M12 2.9v2.4M12 18.7v2.4M4.4 12H2M22 12h-2.4M6.6 6.6L4.9 4.9M19.1 19.1l-1.7-1.7M6.6 17.4l-1.7 1.7M19.1 4.9l-1.7 1.7'/></g><circle cx='12' cy='12' r='7.1' fill='none' stroke='white' stroke-width='2.2'/><circle cx='12' cy='12' r='3.2' fill='white'/><circle cx='12' cy='12' r='1.3' fill='%234a5568'/></svg>"),
     linear-gradient(150deg, #c9d3e0, #8290a5 60%, #4a5568);

@@ -3,6 +3,7 @@ import { calendar } from './apps/calendar.js';
 import { weather } from './apps/weather.js';
 import { terminal } from './apps/terminal.js';
 import { ai } from './apps/ai.js';
+import { mzk } from './apps/mzk.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const attr = (s) => esc(s).replace(/"/g, '&quot;');
@@ -379,6 +380,7 @@ export const apps = {
     desc: 'Stream movies in your own window.',
     render: renderMovies,
   },
+  mzk,
   notes: {
     name: 'Notes',
     title: 'Notes',
