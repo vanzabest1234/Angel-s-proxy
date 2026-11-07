@@ -89,8 +89,10 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
 .desktop-icons {
   position: absolute;
   top: 14px; left: 14px;
-  display: flex;
-  flex-direction: column;
+  max-height: calc(100% - 90px);
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(6, max-content);
   gap: 6px;
   z-index: 2;
 }
@@ -919,6 +921,7 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   .tray-icons svg:nth-child(2),
   .tray-icons svg:nth-child(3) { display: none; }
   .tb-btn.tb-app { width: 32px; }
+  .desktop-icons { grid-template-rows: repeat(4, max-content); }
   .window,
   .window[data-app="browser"],
   .window[data-app="ai"],
@@ -939,6 +942,7 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   .taskbar { bottom: 64px; }
   .start-menu { bottom: 126px; max-height: calc(100vh - 138px); }
   .watermark { display: none; }
+  .desktop-icons { grid-template-rows: repeat(5, max-content); }
   .window { height: min(520px, calc(100vh - 200px)); }
   .window[data-app="browser"] { height: min(600px, calc(100vh - 200px)); }
   .window.is-max { height: calc(100% - 116px); }
