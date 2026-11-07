@@ -2,7 +2,6 @@ import { calculator } from './apps/calculator.js';
 import { calendar } from './apps/calendar.js';
 import { weather } from './apps/weather.js';
 import { terminal } from './apps/terminal.js';
-import { ai } from './apps/ai.js';
 import { mzk } from './apps/mzk.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -399,7 +398,6 @@ export const apps = {
   calendar,
   weather,
   terminal,
-  ai,
   store: {
     name: 'Store',
     title: 'Store',

@@ -65,11 +65,6 @@
     linear-gradient(150deg, #5a6678, #262e39 60%, #10141a);
 }
 
-.tile-ai {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M11 3.2l1.9 5.1 5.1 1.9-5.1 1.9L11 17.2 9.1 12.1 4 10.2l5.1-1.9L11 3.2Z' fill='white'/><path d='M17.8 14.6l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9.9-2.3Z' fill='white' opacity='0.85'/></svg>"),
-    linear-gradient(150deg, #c3b2ff, #7b5cff 55%, #2f1f8f);
-}
-
 .tile-mzk {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='8' cy='17.2' r='2.9' fill='white'/><circle cx='17.2' cy='15.2' r='2.9' fill='white'/><path d='M9.9 17.2V7.4L20.1 5.1v10.1' fill='none' stroke='white' stroke-width='2.1' stroke-linejoin='round' stroke-linecap='round'/></svg>"),
     linear-gradient(150deg, #a79bff, #6b5ef5 58%, #3b2fb0);
