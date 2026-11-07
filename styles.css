@@ -162,6 +162,11 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   height: min(700px, calc(100vh - 100px));
 }
 
+.window[data-app="movies"] {
+  width: min(1100px, calc(100vw - 40px));
+  height: min(700px, calc(100vh - 100px));
+}
+
 .window[data-app="store"] { width: min(1000px, calc(100vw - 44px)); }
 
 .window[data-app="ai"] {

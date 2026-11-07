@@ -204,6 +204,19 @@ function renderBrowser(body) {
   frame(START_PAGE, true);
 }
 
+/* ---------- Movies ---------- */
+const MOVIES_PAGE = 'https://thd.sagarshrestha1999.com.np/movies';
+
+function renderMovies(body) {
+  body.innerHTML = `
+    <div class="proxy">
+      <div class="proxy-view is-frame">
+        <iframe class="proxy-frame" title="Movies" src="${attr(MOVIES_PAGE)}"
+          referrerpolicy="no-referrer"></iframe>
+      </div>
+    </div>`;
+}
+
 /* ---------- Settings ---------- */
 const ACCENTS = [
   ['#4cc2ff', 'Sky'],
@@ -345,6 +358,13 @@ export const apps = {
     desc: 'Black and red browsing, in your own space.',
     maximized: true,
     render: renderBrowser,
+  },
+  movies: {
+    name: 'Movies',
+    title: 'Movies',
+    tile: 'tile-movies',
+    desc: 'Stream movies in your own window.',
+    render: renderMovies,
   },
   notes: {
     name: 'Notes',

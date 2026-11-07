@@ -25,6 +25,11 @@
     linear-gradient(150deg, #ff5a66, #c00f1e 56%, #14060a);
 }
 
+.tile-movies {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='2.5' y='5' width='19' height='14' rx='3' fill='white'/><path d='M10 9.2v7.6l6-3.8z' fill='%238b2bd6'/></svg>"),
+    linear-gradient(150deg, #c084fc, #8b2bd6 58%, #3b0a5e);
+}
+
 .tile-store {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6.2 8.4h11.6l-1 10.4a1.6 1.6 0 0 1-1.6 1.4H8.8a1.6 1.6 0 0 1-1.6-1.4L6.2 8.4Z' fill='white'/><path d='M9.2 8.4a2.8 2.8 0 0 1 5.6 0' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9.4' cy='12.4' r='1' fill='%232b7bff'/><circle cx='14.6' cy='12.4' r='1' fill='%232b7bff'/></svg>"),
     linear-gradient(150deg, #7ad4ff, #2b7bff 65%, #1a3fb8);
