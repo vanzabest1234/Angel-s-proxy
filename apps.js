@@ -3,6 +3,7 @@ import { calendar } from './apps/calendar.js';
 import { weather } from './apps/weather.js';
 import { terminal } from './apps/terminal.js';
 import { ai } from './apps/ai.js';
+import { music } from './apps/music.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const attr = (s) => esc(s).replace(/"/g, '&quot;');
@@ -398,6 +399,7 @@ export const apps = {
   weather,
   terminal,
   ai,
+  music,
   store: {
     name: 'Store',
     title: 'Store',

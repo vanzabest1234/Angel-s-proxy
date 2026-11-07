@@ -70,6 +70,11 @@
     linear-gradient(150deg, #c3b2ff, #7b5cff 55%, #2f1f8f);
 }
 
+.tile-music {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='8.6' fill='white'/><g stroke='%230f7a37' fill='none' stroke-linecap='round'><path d='M7.4 10c3.2-.9 6.4-.6 9.2 1.1' stroke-width='1.7'/><path d='M8.1 12.6c2.5-.7 5.1-.4 7.4.9' stroke-width='1.6'/><path d='M8.8 15.1c1.9-.5 3.9-.3 5.7.7' stroke-width='1.5'/></g></svg>"),
+    linear-gradient(150deg, #4ade80, #1db954 58%, #0b7a38);
+}
+
 .tile-settings {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g stroke='white' stroke-width='2.4' stroke-linecap='round'><path d='M12 2.9v2.4M12 18.7v2.4M4.4 12H2M22 12h-2.4M6.6 6.6L4.9 4.9M19.1 19.1l-1.7-1.7M6.6 17.4l-1.7 1.7M19.1 4.9l-1.7 1.7'/></g><circle cx='12' cy='12' r='7.1' fill='none' stroke='white' stroke-width='2.2'/><circle cx='12' cy='12' r='3.2' fill='white'/><circle cx='12' cy='12' r='1.3' fill='%234a5568'/></svg>"),
     linear-gradient(150deg, #c9d3e0, #8290a5 60%, #4a5568);
