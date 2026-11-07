@@ -1,6 +1,10 @@
 const EMBED = 'https://open.spotify.com/embed';
 const TYPES = ['track', 'album', 'playlist', 'artist', 'episode', 'show'];
 
+// Spotify is loaded through Ather's Legendary Proxy (/frame) instead of a direct
+// embed, so the player's traffic runs through this app's own server.
+const proxied = (url) => `/frame?url=${encodeURIComponent(url)}`;
+
 // Every playlist below is a real Spotify playlist, so the app plays actual
 // Spotify songs instead of the old royalty-free placeholders.
 const PLAYLISTS = [
@@ -76,9 +80,13 @@ export function renderMusic(body) {
               <input class="sp-search" type="search" placeholder="Paste a Spotify song, album or playlist link" aria-label="Spotify link" data-link>
             </label>
             <button class="sp-go" data-go>Play</button>
-            <span class="sp-badge">All songs</span>
+            <div class="sp-modes" role="group" aria-label="Loading mode">
+              <button class="sp-mode is-active" data-mode="proxy" title="Load Spotify through Ather's Legendary Proxy">Proxied</button>
+              <button class="sp-mode" data-mode="direct" title="Load Spotify directly — needed for playback">Direct</button>
+            </div>
           </header>
           <p class="sp-msg" data-msg hidden></p>
+          <p class="sp-note" data-note hidden></p>
           <div class="sp-frame-wrap">
             <iframe class="sp-frame" data-frame title="Spotify player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
@@ -90,6 +98,9 @@ export function renderMusic(body) {
   const listsEl = body.querySelector('[data-lists]');
   const linkInput = body.querySelector('[data-link]');
   const msg = body.querySelector('[data-msg]');
+  const note = body.querySelector('[data-note]');
+  const modes = body.querySelectorAll('[data-mode]');
+  const state = { target: { type: 'playlist', id: PLAYLISTS[0].id }, name: PLAYLISTS[0].name, mode: 'proxy' };
   const homeBtn = body.querySelector('[data-view="home"]');
   const linkBtn = body.querySelector('[data-view="link"]');
 
@@ -107,13 +118,32 @@ export function renderMusic(body) {
     });
   };
 
-  const play = (target, name) => {
-    const src = `${EMBED}/${target.type}/${target.id}?utm_source=generator&theme=0`;
+  const load = () => {
+    const url = `${EMBED}/${state.target.type}/${state.target.id}?utm_source=generator&theme=0`;
+    const src = state.mode === 'proxy' ? proxied(url) : url;
     if (frame.getAttribute('src') !== src) frame.setAttribute('src', src);
-    frame.title = name ? `Spotify: ${name}` : 'Spotify player';
-    highlight(name ? target.id : '');
+    frame.title = state.name ? `Spotify: ${state.name}` : 'Spotify player';
+    highlight(state.name ? state.target.id : '');
+    modes.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.mode === state.mode));
+    note.hidden = state.mode !== 'proxy';
+    if (state.mode === 'proxy') {
+      note.textContent = 'Proxied view — Spotify’s player only plays in Direct mode.';
+    }
+  };
+
+  const play = (target, name) => {
+    state.target = target;
+    state.name = name || '';
+    load();
     say('');
   };
+
+  modes.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.mode = btn.dataset.mode;
+      load();
+    });
+  });
 
   listsEl.innerHTML = PLAYLISTS.map((p) => `
     <button class="sp-lib-item" data-id="${p.id}" title="${esc(p.desc)}">
