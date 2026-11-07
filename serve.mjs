@@ -417,48 +417,6 @@ async function handleAi(req, res) {
   }
 }
 
-const MUSIC_TTL = 10 * 60 * 1000;
-const musicCache = new Map();
-
-const toTrack = (t) => ({
-  title: t.title_short || t.title || '',
-  artist: t.artist ? t.artist.name : '',
-  album: t.album ? t.album.title : '',
-  cover: t.album ? (t.album.cover_medium || t.album.cover_big || t.album.cover || '') : '',
-  src: t.preview || '',
-  duration: t.duration || 0,
-});
-
-/* Real songs (30-second previews) relayed from the public Deezer catalogue. */
-async function musicTracks(res, params) {
-  const q = (params.get('q') || '').trim();
-  const chart = (params.get('chart') || '0').trim();
-  const key = q ? `q:${q.toLowerCase()}` : `c:${chart}`;
-
-  const hit = musicCache.get(key);
-  if (hit && Date.now() - hit.at < MUSIC_TTL) return json(res, 200, hit.data);
-
-  const target = q
-    ? `https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=30`
-    : `https://api.deezer.com/chart/${encodeURIComponent(chart)}/tracks?limit=40`;
-
-  try {
-    const upstream = await fetch(target, {
-      signal: AbortSignal.timeout(12000),
-      headers: { accept: 'application/json', 'user-agent': UA },
-    });
-    const data = await upstream.json().catch(() => ({}));
-    const tracks = (Array.isArray(data.data) ? data.data : []).map(toTrack).filter((t) => t.src && t.title);
-    const payload = { tracks, note: tracks.length ? '' : 'No songs came back — try another search.' };
-
-    musicCache.set(key, { at: Date.now(), data: payload });
-    if (musicCache.size > 80) musicCache.delete(musicCache.keys().next().value);
-    return json(res, 200, payload);
-  } catch {
-    return json(res, 200, { tracks: [], note: 'The song service did not answer — try again.' });
-  }
-}
-
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const path = decodeURIComponent(url.pathname);
@@ -490,10 +448,6 @@ createServer(async (req, res) => {
 
   if (path === '/img') {
     return image(res, url.searchParams.get('url') || '', url.searchParams.get('ref') || '');
-  }
-
-  if (path === '/api/music') {
-    return musicTracks(res, url.searchParams);
   }
 
   if (path === '/api/files') {
