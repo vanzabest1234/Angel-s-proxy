@@ -1,48 +1,54 @@
-const SONG_URL = (n) => `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${n}.mp3`;
-const SERIES = ['Series A', 'Series B', 'Series C', 'Series D'];
-const ART = {
-  'Series A': ['#3ddc84', '#0b3d24'],
-  'Series B': ['#7b5cff', '#1d1046'],
-  'Series C': ['#ff8a5c', '#3d1408'],
-  'Series D': ['#38bdf8', '#0b2b45'],
-};
+const EMBED = 'https://open.spotify.com/embed';
+const TYPES = ['track', 'album', 'playlist', 'artist', 'episode', 'show'];
 
-const TRACKS = Array.from({ length: 16 }, (_, i) => {
-  const album = SERIES[Math.floor(i / 4)];
-  return {
-    title: `SoundHelix Song ${i + 1}`,
-    artist: 'SoundHelix',
-    album,
-    src: SONG_URL(i + 1),
-  };
-});
-
+// Every playlist below is a real Spotify playlist, so the app plays actual
+// Spotify songs instead of the old royalty-free placeholders.
 const PLAYLISTS = [
-  { id: 'all', name: 'All Songs', desc: 'Every royalty-free track in the library.', tracks: TRACKS.map((_, i) => i) },
-  { id: 'discover', name: 'Discover Weekly', desc: 'A fresh mix of free instrumentals.', tracks: [0, 2, 5, 8, 11, 14] },
-  { id: 'focus', name: 'Focus Flow', desc: 'Steady music for deep work.', tracks: [1, 4, 6, 9, 12, 15] },
-  { id: 'chill', name: 'Chill Evenings', desc: 'Slow tempos for winding down.', tracks: [3, 7, 10, 13] },
-  { id: 'workout', name: 'Workout Boost', desc: 'Driving rhythms to keep you moving.', tracks: [2, 6, 9, 12, 0, 15] },
-  { id: 'liked', name: 'Liked Songs', desc: 'Your saved tracks, all in one place.', tracks: [1, 5, 8, 14] },
+  { id: '37i9dQZF1DXcBWIGoYBM5M', name: 'Today’s Top Hits', desc: 'The 50 biggest songs on Spotify right now', cover: 'https://i.scdn.co/image/ab67706f00000002e06fabee7abffa117bed662f' },
+  { id: '37i9dQZF1DX0XUsuxWHRQd', name: 'RapCaviar', desc: 'Hip-hop’s heaviest hitters', cover: 'https://i.scdn.co/image/ab67706f00000002bc625e1e16425bc7d8e049e5' },
+  { id: '37i9dQZF1DX1lVhptIYRda', name: 'Hot Country', desc: 'Country’s hottest tracks', cover: 'https://i.scdn.co/image/ab67706f000000022abdf5bda95a1572f813740f' },
+  { id: '37i9dQZF1DWXRqgorJj26U', name: 'Rock Classics', desc: 'The riffs that built rock', cover: 'https://i.scdn.co/image/ab67706f00000002694bf33281695f3b7542a09a' },
+  { id: '37i9dQZF1DX4UtSsGT1Sbe', name: 'All Out 80s', desc: 'Synths, big hair, bigger hooks', cover: 'https://i.scdn.co/image/ab67706f000000028c767aab2034bb8fafd33124' },
+  { id: '37i9dQZF1DX4WYpdgoIcn6', name: 'Chill Hits', desc: 'Low-key songs for slowing down', cover: 'https://i.scdn.co/image/ab67706f000000020408713c731caaf1f800615a' },
+  { id: '37i9dQZF1DX76Wlfdnj7AP', name: 'Beast Mode', desc: 'Beats to push through any workout', cover: 'https://i.scdn.co/image/ab67706f00000002f367481f06b565250cc7b139' },
+  { id: '37i9dQZF1DX4dyzvuaRJ0n', name: 'mint', desc: 'The newest in dance and electronic', cover: 'https://i.scdn.co/image/ab67706f000000028df1aa8183f5f64949d9b269' },
+  { id: '37i9dQZF1DWUa8ZRTfalHk', name: 'Pop Rising', desc: 'Tomorrow’s pop stars, today', cover: 'https://i.scdn.co/image/ab67706f00000002f24e6237278c6d653d587b3b' },
+  { id: '37i9dQZF1DWWQRwui0ExPn', name: 'lofi beats', desc: 'Chill beats to study and relax to', cover: 'https://i.scdn.co/image/ab67706f00000002266beb50b0032b0f140a749e' },
+  { id: '37i9dQZF1DWWEJlAGA9gs0', name: 'Classical Essentials', desc: 'The greatest classical works', cover: 'https://i.scdn.co/image/ab67706f00000002762f5045eac92a372596acca' },
+  { id: '37i9dQZF1DX4sWSpwq3LiO', name: 'Peaceful Piano', desc: 'Solo piano for calm moments', cover: 'https://i.scdn.co/image/ab67706f0000000270e1fb7db7b45809d6a80377' },
+  { id: '37i9dQZF1DXbITWG1ZJKYt', name: 'Jazz Classics', desc: 'Standards from the greats', cover: 'https://i.scdn.co/image/ab67706f00000002d6717501a3dc7fdef7aa1694' },
 ];
 
 const ICONS = {
   home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.6 12 3l9 7.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5.5 9.6V20h13V9.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
   search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-  prev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5.5v13L9 12z" fill="currentColor"/><rect x="4" y="5.5" width="2.4" height="13" rx="1" fill="currentColor"/></svg>',
-  next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5v13L15 12z" fill="currentColor"/><rect x="17.6" y="5.5" width="2.4" height="13" rx="1" fill="currentColor"/></svg>',
-  play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L19 12z" fill="currentColor"/></svg>',
-  pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5.2" width="3.6" height="13.6" rx="1" fill="currentColor"/><rect x="13.4" y="5.2" width="3.6" height="13.6" rx="1" fill="currentColor"/></svg>',
-  volume: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.4L12 18V6L7.4 9.5z" fill="currentColor"/><path d="M15.6 8.6a4.6 4.6 0 0 1 0 6.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
 };
 
-const fmt = (sec) => {
-  if (!Number.isFinite(sec)) return '0:00';
-  const whole = Math.max(0, Math.floor(sec));
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
-};
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-const art = (album) => ART[album] || ['#1db954', '#0b3d24'];
+/* Accepts open.spotify.com links, spotify: URIs and bare 22-character ids. */
+function parseSpotify(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+
+  const uri = raw.match(/spotify:(track|album|playlist|artist|episode|show):([A-Za-z0-9]{22})/i);
+  if (uri) return { type: uri[1].toLowerCase(), id: uri[2] };
+
+  try {
+    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    const parts = url.pathname.split('/').filter(Boolean).filter((p) => !/^intl-/i.test(p));
+    const at = parts.findIndex((p) => TYPES.includes(p.toLowerCase()));
+    if (at > -1 && /^[A-Za-z0-9]{22}$/.test(parts[at + 1] || '')) {
+      return { type: parts[at].toLowerCase(), id: parts[at + 1] };
+    }
+  } catch {
+    return null;
+  }
+
+  const bare = raw.match(/^([A-Za-z0-9]{22})$/);
+  if (bare) return { type: 'playlist', id: bare[1] };
+  return null;
+}
 
 export function renderMusic(body) {
   body.innerHTML = `
@@ -52,14 +58,14 @@ export function renderMusic(body) {
           <div class="sp-brand">
             <span class="sp-mark" aria-hidden="true"></span>
             <span>Spotify</span>
-            <span class="sp-free">royalty-free</span>
+            <span class="sp-free">All songs</span>
           </div>
           <nav class="sp-nav">
             <button class="sp-nav-item is-active" data-view="home">${ICONS.home}Home</button>
-            <button class="sp-nav-item" data-view="search">${ICONS.search}Search</button>
+            <button class="sp-nav-item" data-view="link">${ICONS.search}Open a link</button>
           </nav>
           <div class="sp-library">
-            <p class="sp-library-title">Your Library</p>
+            <p class="sp-library-title">Spotify playlists</p>
             <div data-lists></div>
           </div>
         </aside>
@@ -67,265 +73,103 @@ export function renderMusic(body) {
           <header class="sp-top">
             <label class="sp-searchwrap">
               ${ICONS.search}
-              <input class="sp-search" type="search" placeholder="Search songs or albums" aria-label="Search songs" data-search>
+              <input class="sp-search" type="search" placeholder="Paste a Spotify song, album or playlist link" aria-label="Spotify link" data-link>
             </label>
-            <span class="sp-badge">Free to play</span>
+            <button class="sp-go" data-go>Play</button>
+            <span class="sp-badge">All songs</span>
           </header>
-          <div class="sp-scroll" data-scroll>
-            <section class="sp-hero" data-hero></section>
-            <section class="sp-section">
-              <h2 class="sp-h2">Made for you</h2>
-              <div class="sp-grid" data-grid></div>
-            </section>
-            <section class="sp-section">
-              <h2 class="sp-h2" data-list-title>All Songs</h2>
-              <div class="sp-tracks" data-tracks></div>
-            </section>
+          <p class="sp-msg" data-msg hidden></p>
+          <div class="sp-frame-wrap">
+            <iframe class="sp-frame" data-frame title="Spotify player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
         </main>
       </div>
-
-      <footer class="sp-player">
-        <div class="sp-now">
-          <span class="sp-cover" data-cover></span>
-          <div class="sp-now-text">
-            <p class="sp-now-title" data-now-title>Nothing playing</p>
-            <p class="sp-now-artist" data-now-artist>Pick a song to start</p>
-          </div>
-        </div>
-        <div class="sp-center">
-          <div class="sp-buttons">
-            <button class="sp-btn" data-prev aria-label="Previous song">${ICONS.prev}</button>
-            <button class="sp-btn sp-play" data-play aria-label="Play">${ICONS.play}</button>
-            <button class="sp-btn" data-next aria-label="Next song">${ICONS.next}</button>
-          </div>
-          <div class="sp-seek">
-            <span class="sp-time" data-cur>0:00</span>
-            <input class="sp-range" type="range" min="0" max="100" step="0.1" value="0" data-seek aria-label="Seek">
-            <span class="sp-time" data-dur>0:00</span>
-          </div>
-        </div>
-        <div class="sp-right">
-          ${ICONS.volume}
-          <input class="sp-range sp-vol" type="range" min="0" max="100" step="1" value="70" data-vol aria-label="Volume">
-        </div>
-      </footer>
-      <audio data-audio preload="metadata"></audio>
     </div>`;
 
-  const audio = body.querySelector('[data-audio]');
-  const seek = body.querySelector('[data-seek]');
-  const vol = body.querySelector('[data-vol]');
-  const curEl = body.querySelector('[data-cur]');
-  const durEl = body.querySelector('[data-dur]');
-  const playBtn = body.querySelector('[data-play]');
-  const searchInput = body.querySelector('[data-search]');
-  const scroll = body.querySelector('[data-scroll]');
-  const heroEl = body.querySelector('[data-hero]');
-  const gridEl = body.querySelector('[data-grid]');
+  const frame = body.querySelector('[data-frame]');
   const listsEl = body.querySelector('[data-lists]');
-  const tracksEl = body.querySelector('[data-tracks]');
-  const listTitle = body.querySelector('[data-list-title]');
-  const cover = body.querySelector('[data-cover]');
-  const nowTitle = body.querySelector('[data-now-title]');
-  const nowArtist = body.querySelector('[data-now-artist]');
-  const durations = new Map();
+  const linkInput = body.querySelector('[data-link]');
+  const msg = body.querySelector('[data-msg]');
+  const homeBtn = body.querySelector('[data-view="home"]');
+  const linkBtn = body.querySelector('[data-view="link"]');
 
-  const state = { listId: 'all', query: '', pos: 0 };
-
-  // Re-rendered rows detach mid-click; stop the click here so the desktop's
-  // background-click handler never hides the window.
+  // Re-rendered rows detach mid-click; keep clicks from hiding the desktop window.
   body.querySelector('.sp').addEventListener('click', (event) => event.stopPropagation());
 
-  audio.volume = vol.value / 100;
+  const say = (text = '') => {
+    msg.textContent = text;
+    msg.hidden = !text;
+  };
 
-  const list = () => PLAYLISTS.find((p) => p.id === state.listId) || PLAYLISTS[0];
-
-  const queue = () => {
-    const term = state.query.trim().toLowerCase();
-    return list().tracks.filter((i) => {
-      if (!term) return true;
-      const t = TRACKS[i];
-      return `${t.title} ${t.album} ${t.artist}`.toLowerCase().includes(term);
+  const highlight = (id) => {
+    listsEl.querySelectorAll('.sp-lib-item').forEach((el) => {
+      el.classList.toggle('is-active', el.dataset.id === id);
     });
   };
 
-  const paint = (el, album) => {
-    const [a, b] = art(album);
-    el.style.setProperty('--c1', a);
-    el.style.setProperty('--c2', b);
+  const play = (target, name) => {
+    const src = `${EMBED}/${target.type}/${target.id}?utm_source=generator&theme=0`;
+    if (frame.getAttribute('src') !== src) frame.setAttribute('src', src);
+    frame.title = name ? `Spotify: ${name}` : 'Spotify player';
+    highlight(name ? target.id : '');
+    say('');
   };
 
-  const renderLists = () => {
-    listsEl.innerHTML = PLAYLISTS.map((p) => `
-      <button class="sp-lib-item${p.id === state.listId ? ' is-active' : ''}" data-list="${p.id}">
-        <span class="sp-lib-thumb" data-art="${TRACKS[p.tracks[0]].album}" aria-hidden="true"></span>
-        <span>${p.name}</span>
-      </button>`).join('');
-    listsEl.querySelectorAll('.sp-lib-thumb').forEach((el) => paint(el, el.dataset.art));
+  listsEl.innerHTML = PLAYLISTS.map((p) => `
+    <button class="sp-lib-item" data-id="${p.id}" title="${esc(p.desc)}">
+      <span class="sp-lib-thumb"><img src="${p.cover}" alt="" loading="lazy"></span>
+      <span>${esc(p.name)}</span>
+    </button>`).join('');
+
+  const openPlaylist = (id) => {
+    const list = PLAYLISTS.find((p) => p.id === id) || PLAYLISTS[0];
+    play({ type: 'playlist', id: list.id }, list.name);
+    linkInput.value = '';
   };
 
-  const renderHero = () => {
-    const current = list();
-    const album = TRACKS[current.tracks[0]].album;
-    const [a, b] = art(album);
-    heroEl.style.setProperty('--c1', a);
-    heroEl.style.setProperty('--c2', b);
-    heroEl.innerHTML = `
-      <span class="sp-hero-art" data-hero-art aria-hidden="true"></span>
-      <div class="sp-hero-text">
-        <p class="sp-hero-kind">Playlist</p>
-        <h1 class="sp-hero-name">${current.name}</h1>
-        <p class="sp-hero-desc">${current.desc} · ${current.tracks.length} songs</p>
-      </div>
-      <button class="sp-hero-play" data-hero-play aria-label="Play ${current.name}">${ICONS.play}</button>`;
-    paint(heroEl.querySelector('[data-hero-art]'), album);
-  };
-
-  const renderGrid = () => {
-    gridEl.innerHTML = PLAYLISTS.filter((p) => p.id !== state.listId).map((p) => `
-      <button class="sp-card" data-card="${p.id}">
-        <span class="sp-card-art" data-art="${TRACKS[p.tracks[0]].album}" aria-hidden="true">
-          <span class="sp-card-play" aria-hidden="true">${ICONS.play}</span>
-        </span>
-        <span class="sp-card-name">${p.name}</span>
-        <span class="sp-card-desc">${p.desc}</span>
-      </button>`).join('');
-    gridEl.querySelectorAll('.sp-card-art').forEach((el) => paint(el, el.dataset.art));
-  };
-
-  const renderTracks = () => {
-    const q = queue();
-    listTitle.textContent = state.query ? `Results in ${list().name}` : list().name;
-    if (!q.length) {
-      tracksEl.innerHTML = '<p class="sp-empty">No songs match that search.</p>';
+  const openLink = () => {
+    const target = parseSpotify(linkInput.value);
+    if (!target) {
+      say('That is not a Spotify link — paste a song, album, playlist or artist link.');
+      linkInput.focus();
       return;
     }
-    tracksEl.innerHTML = q.map((trackIndex, pos) => {
-      const track = TRACKS[trackIndex];
-      const playing = Boolean(audio.currentSrc) && audio.currentSrc === track.src;
-      return `
-        <button class="sp-row${playing ? ' is-playing' : ''}" data-pos="${pos}" aria-label="Play ${track.title}">
-          <span class="sp-row-index">${playing ? '<span class="sp-bars" aria-hidden="true"><i></i><i></i><i></i></span>' : pos + 1}</span>
-          <span class="sp-row-main">
-            <span class="sp-row-title">${track.title}</span>
-            <span class="sp-row-artist">${track.artist}</span>
-          </span>
-          <span class="sp-row-album">${track.album}</span>
-          <span class="sp-row-dur">${durations.has(track.src) ? fmt(durations.get(track.src)) : '--:--'}</span>
-        </button>`;
-    }).join('');
+    const list = PLAYLISTS.find((p) => p.id === target.id);
+    play(target, list ? list.name : '');
   };
 
-  const renderAll = () => {
-    renderLists();
-    renderHero();
-    renderGrid();
-    renderTracks();
-  };
-
-  const setPlayIcon = (playing) => {
-    playBtn.innerHTML = playing ? ICONS.pause : ICONS.play;
-    playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
-    playBtn.classList.toggle('is-playing', playing);
-  };
-
-  const playPos = (pos) => {
-    const q = queue();
-    if (!q.length) return;
-    state.pos = ((pos % q.length) + q.length) % q.length;
-    const track = TRACKS[q[state.pos]];
-    audio.src = track.src;
-    audio.play().catch(() => setPlayIcon(false));
-    nowTitle.textContent = track.title;
-    nowArtist.textContent = `${track.artist} · ${track.album}`;
-    paint(cover, track.album);
-    seek.value = 0;
-    curEl.textContent = '0:00';
-    renderTracks();
-  };
-
-  /* ---------- player events ---------- */
-  playBtn.addEventListener('click', () => {
-    if (!audio.currentSrc) {
-      playPos(state.pos);
-      return;
-    }
-    if (audio.paused) audio.play().catch(() => setPlayIcon(false));
-    else audio.pause();
-  });
-
-  body.querySelector('[data-prev]').addEventListener('click', () => playPos(state.pos - 1));
-  body.querySelector('[data-next]').addEventListener('click', () => playPos(state.pos + 1));
-  heroEl.addEventListener('click', (event) => {
-    if (event.target.closest('[data-hero-play]')) playPos(0);
-  });
-
-  audio.addEventListener('play', () => setPlayIcon(true));
-  audio.addEventListener('pause', () => setPlayIcon(false));
-  audio.addEventListener('loadedmetadata', () => {
-    durEl.textContent = fmt(audio.duration);
-    durations.set(audio.currentSrc, audio.duration);
-    const row = tracksEl.querySelector(`[data-pos="${state.pos}"] .sp-row-dur`);
-    if (row) row.textContent = fmt(audio.duration);
-  });
-  audio.addEventListener('timeupdate', () => {
-    curEl.textContent = fmt(audio.currentTime);
-    if (audio.duration) seek.value = (audio.currentTime / audio.duration) * 100;
-  });
-  audio.addEventListener('ended', () => playPos(state.pos + 1));
-  audio.addEventListener('error', () => {
-    nowArtist.textContent = 'That song could not load — check your connection.';
-    setPlayIcon(false);
-  });
-
-  seek.addEventListener('input', () => {
-    if (audio.duration) audio.currentTime = (seek.value / 100) * audio.duration;
-  });
-  vol.addEventListener('input', () => { audio.volume = vol.value / 100; });
-
-  /* ---------- browsing ---------- */
-  const selectList = (id) => {
-    state.listId = id;
-    state.query = '';
-    state.pos = 0;
-    searchInput.value = '';
-    renderAll();
-    scroll.scrollTop = 0;
-  };
-
-  gridEl.addEventListener('click', (event) => {
-    const card = event.target.closest('[data-card]');
-    if (card) selectList(card.dataset.card);
-  });
   listsEl.addEventListener('click', (event) => {
-    const item = event.target.closest('[data-list]');
-    if (item) selectList(item.dataset.list);
-  });
-  tracksEl.addEventListener('click', (event) => {
-    const row = event.target.closest('[data-pos]');
-    if (row) playPos(Number(row.dataset.pos));
-  });
-  body.querySelectorAll('[data-view]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      body.querySelectorAll('.sp-nav-item').forEach((b) => b.classList.toggle('is-active', b === btn));
-      if (btn.dataset.view === 'search') searchInput.focus();
-      else selectList('all');
-    });
-  });
-  searchInput.addEventListener('input', () => {
-    state.query = searchInput.value;
-    state.pos = 0;
-    renderTracks();
+    const item = event.target.closest('[data-id]');
+    if (item) openPlaylist(item.dataset.id);
   });
 
-  renderAll();
+  body.querySelector('[data-go]').addEventListener('click', openLink);
+  linkInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      openLink();
+    }
+  });
+
+  homeBtn.addEventListener('click', () => {
+    homeBtn.classList.add('is-active');
+    linkBtn.classList.remove('is-active');
+    openPlaylist(PLAYLISTS[0].id);
+  });
+
+  linkBtn.addEventListener('click', () => {
+    linkBtn.classList.add('is-active');
+    homeBtn.classList.remove('is-active');
+    linkInput.focus();
+  });
+
+  openPlaylist(PLAYLISTS[0].id);
 }
 
 export const music = {
   name: 'Spotify',
   title: 'Spotify',
   tile: 'tile-music',
-  desc: 'A Spotify-style player with royalty-free songs.',
+  desc: 'Every song on Spotify — real playlists and any link you paste.',
   render: renderMusic,
 };
