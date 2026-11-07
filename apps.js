@@ -217,6 +217,19 @@ function renderMovies(body) {
     </div>`;
 }
 
+/* ---------- Games ---------- */
+const GAMES_PAGE = 'https://unpkg.com/hilollol@1.0.0/index.html';
+
+function renderGames(body) {
+  body.innerHTML = `
+    <div class="proxy">
+      <div class="proxy-view is-frame">
+        <iframe class="proxy-frame" title="Games" src="${attr(GAMES_PAGE)}"
+          referrerpolicy="no-referrer"></iframe>
+      </div>
+    </div>`;
+}
+
 /* ---------- Settings ---------- */
 const ACCENTS = [
   ['#4cc2ff', 'Sky'],
@@ -358,6 +371,13 @@ export const apps = {
     desc: 'Black and red browsing, in your own space.',
     maximized: true,
     render: renderBrowser,
+  },
+  games: {
+    name: 'Games',
+    title: 'Games',
+    tile: 'tile-games',
+    desc: 'Play in your own window.',
+    render: renderGames,
   },
   movies: {
     name: 'Movies',
