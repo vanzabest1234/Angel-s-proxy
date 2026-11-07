@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your own music</title>
+<title>MZK Player</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{height:100%}
@@ -431,9 +431,9 @@ audio#native-audio{width:100%;border-radius:var(--radius);outline:none}
   <!-- Header -->
   <div id="hdr">
     <div class="brand">
-      <div class="brand-mark">YM</div>
+      <div class="brand-mark">MZK</div>
       <div class="brand-txt">
-        <div class="b-name">Your own music</div>
+        <div class="b-name">MZK Player</div>
         <div class="b-sub">Local Library</div>
       </div>
     </div>
@@ -878,14 +878,14 @@ function updatePlayUI() {
     icoPause.style.display = '';
     npArt.classList.add('playing');
     npLabel.textContent = 'Now Playing';
-    document.title = (songs[curIdx] ? '▶ ' + songs[curIdx].name + ' — ' : '') + 'Your own music';
+    document.title = (songs[curIdx] ? '▶ ' + songs[curIdx].name + ' — ' : '') + 'MZK Player';
   } else {
     icoPlay.style.display = '';
     icoPause.style.display = 'none';
     npArt.classList.remove('playing');
     npLabel.textContent = curIdx >= 0 ? 'Paused' : 'Idle';
-    if (curIdx >= 0 && songs[curIdx]) document.title = '⏸ ' + songs[curIdx].name + ' — Your own music';
-    else document.title = 'Your own music';
+    if (curIdx >= 0 && songs[curIdx]) document.title = '⏸ ' + songs[curIdx].name + ' — MZK Player';
+    else document.title = 'MZK Player';
   }
 }
 
@@ -1016,7 +1016,7 @@ async function doClear() {
   seekSl.style.background = 'linear-gradient(to right,#6B5EF5 0%,#2E2E42 0%)';
   curT.textContent = '0:00';
   durT.textContent = '0:00';
-  document.title = 'Your own music';
+  document.title = 'MZK Player';
 }
 
 /* ────────────────────────────────────────────────────
