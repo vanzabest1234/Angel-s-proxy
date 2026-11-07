@@ -7,8 +7,20 @@
 <link rel="stylesheet" href="./styles.css">
 <link rel="stylesheet" href="./apps.css">
 <link rel="stylesheet" href="./logos.css">
+<link rel="stylesheet" href="./boot.css">
 </head>
 <body>
+  <div class="boot" id="boot-screen" role="dialog" aria-live="polite" aria-label="Angel's Windows update">
+    <div class="boot-inner">
+      <span class="boot-logo win-logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <div class="boot-ring"><span id="boot-percent">0%</span></div>
+      <h1 class="boot-title">Working on updates</h1>
+      <p class="boot-hint">Don't turn off your PC. This will take a while.</p>
+      <ol class="boot-log" id="boot-log"></ol>
+      <p class="boot-skip">Click anywhere to skip</p>
+    </div>
+  </div>
+
   <div class="desktop">
     <div class="wallpaper" aria-hidden="true">
       <span class="bloom bloom-a"></span>
@@ -17,16 +29,7 @@
       <span class="ribbon"></span>
     </div>
 
-    <div class="desktop-icons">
-      <button class="desk-icon" data-app="readme">
-        <span class="tile tile-readme" aria-hidden="true"></span>
-        <span class="desk-label">README</span>
-      </button>
-      <button class="desk-icon" data-app="files">
-        <span class="tile tile-pc" aria-hidden="true"></span>
-        <span class="desk-label">This PC</span>
-      </button>
-    </div>
+    <div class="desktop-icons" id="desktop-icons"></div>
 
     <div class="windows" id="windows"></div>
 
@@ -45,8 +48,10 @@
 
       <div class="pinned" id="pinned">
         <button class="pin" data-app="readme"><span class="tile tile-readme"></span><span>README</span></button>
-        <button class="pin" data-app="files"><span class="tile tile-pc"></span><span>This PC</span></button>
-        <button class="pin" data-app="browser"><span class="tile tile-edge"></span><span>Edge</span></button>
+        <button class="pin" data-app="games"><span class="tile tile-games"></span><span>Games</span></button>
+        <button class="pin" data-app="movies"><span class="tile tile-movies"></span><span>Movies</span></button>
+        <button class="pin" data-app="music"><span class="tile tile-music"></span><span>Music</span></button>
+        <button class="pin" data-app="browser"><span class="tile tile-proxy"></span><span>Proxy finds</span></button>
         <button class="pin" data-app="store"><span class="tile tile-store"></span><span>Store</span></button>
         <button class="pin" data-app="notes"><span class="tile tile-notes"></span><span>Notes</span></button>
         <button class="pin" data-app="calculator"><span class="tile tile-calc"></span><span>Calculator</span></button>
@@ -64,8 +69,8 @@
           <span><strong>README.md</strong><em>Angel's Windows</em></span>
         </button>
         <button class="rec" data-app="browser">
-          <span class="tile tile-edge small"></span>
-          <span><strong>Edge</strong><em>Search DuckDuckGo privately</em></span>
+          <span class="tile tile-proxy small"></span>
+          <span><strong>Proxy finds</strong><em>A blank window, ready for proxy links</em></span>
         </button>
       </div>
 
@@ -84,8 +89,10 @@
           <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="13" y1="13" x2="17.5" y2="17.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         </button>
         <button class="tb-btn tb-app" data-app="readme" aria-label="README"><span class="tile tile-readme"></span></button>
-        <button class="tb-btn tb-app" data-app="files" aria-label="This PC"><span class="tile tile-pc"></span></button>
-        <button class="tb-btn tb-app" data-app="browser" aria-label="Edge"><span class="tile tile-edge"></span></button>
+        <button class="tb-btn tb-app" data-app="games" aria-label="Games"><span class="tile tile-games"></span></button>
+        <button class="tb-btn tb-app" data-app="movies" aria-label="Movies"><span class="tile tile-movies"></span></button>
+        <button class="tb-btn tb-app" data-app="music" aria-label="Music"><span class="tile tile-music"></span></button>
+        <button class="tb-btn tb-app" data-app="browser" aria-label="Proxy finds"><span class="tile tile-proxy"></span></button>
         <button class="tb-btn tb-app" data-app="store" aria-label="Store"><span class="tile tile-store"></span></button>
         <button class="tb-btn tb-app" data-app="notes" aria-label="Notes"><span class="tile tile-notes"></span></button>
         <button class="tb-btn tb-app" data-app="calculator" aria-label="Calculator"><span class="tile tile-calc"></span></button>
@@ -96,6 +103,15 @@
         <button class="tb-btn tb-app" data-app="settings" aria-label="Settings"><span class="tile tile-settings"></span></button>
       </div>
       <div class="tray">
+        <div class="now-playing" id="now-playing" hidden>
+          <button class="np-title" data-np-title type="button" title="Open Music"></button>
+          <button class="np-btn" data-np-toggle aria-label="Pause" type="button">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path class="np-pause" d="M4.6 3.4h2.4v9.2H4.6zM9 3.4h2.4v9.2H9z" fill="currentColor"/><path class="np-play" d="M5.4 3.4 12 8l-6.6 4.6z" fill="currentColor"/></svg>
+          </button>
+          <button class="np-btn" data-np-close aria-label="Stop" type="button">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.2 4.2 11.8 11.8M11.8 4.2 4.2 11.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </button>
+        </div>
         <span class="tray-icons" aria-hidden="true">
           <svg viewBox="0 0 20 20"><path d="M2 12.5a11 11 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M5.5 15a6.5 6.5 0 0 1 9 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="17" r="1" fill="currentColor"/></svg>
           <svg viewBox="0 0 20 20"><path d="M4 8.5v3h2.5L11 15V5L6.5 8.5z" fill="currentColor"/><path d="M13.5 7.5a3.5 3.5 0 0 1 0 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -105,6 +121,7 @@
       </div>
     </footer>
   </div>
+  <script type="module" src="./boot.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>

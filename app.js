@@ -114,8 +114,51 @@ export function openApp(id) {
   closeStart();
 }
 
+/* ---------- desktop icons ---------- */
+const desktopIcons = document.getElementById('desktop-icons');
+desktopIcons.innerHTML = Object.entries(apps).map(([id, def]) => `
+  <button class="desk-icon" data-app="${id}" type="button">
+    <span class="tile ${def.tile}" aria-hidden="true"></span>
+    <span class="desk-label">${def.name}</span>
+  </button>`).join('');
+
 document.querySelectorAll('[data-app]').forEach((el) => {
   el.addEventListener('click', () => openApp(el.dataset.app));
+});
+
+/* ---------- now playing in the taskbar ---------- */
+const nowPlaying = document.getElementById('now-playing');
+const npTitle = nowPlaying.querySelector('[data-np-title]');
+const npToggle = nowPlaying.querySelector('[data-np-toggle]');
+const npClose = nowPlaying.querySelector('[data-np-close]');
+let npAudio = null;
+
+function syncNowPlaying() {
+  const playing = Boolean(npAudio && !npAudio.paused && !npAudio.ended);
+  npToggle.dataset.playing = String(playing);
+  npToggle.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+}
+
+window.addEventListener('angel:nowplaying', (event) => {
+  npAudio = event.detail.audio;
+  npTitle.textContent = event.detail.title;
+  nowPlaying.hidden = false;
+  syncNowPlaying();
+  npAudio.addEventListener('play', syncNowPlaying);
+  npAudio.addEventListener('pause', syncNowPlaying);
+  npAudio.addEventListener('ended', syncNowPlaying);
+});
+
+npToggle.addEventListener('click', () => {
+  if (!npAudio) return;
+  if (npAudio.paused) npAudio.play().catch(() => {}); else npAudio.pause();
+});
+
+npTitle.addEventListener('click', () => openApp('music'));
+
+npClose.addEventListener('click', () => {
+  if (npAudio) npAudio.pause();
+  nowPlaying.hidden = true;
 });
 
 /* ---------- clock ---------- */
@@ -132,7 +175,13 @@ function tick() {
 const savedAccent = localStorage.getItem('angel.accent');
 if (savedAccent) document.documentElement.style.setProperty('--accent', savedAccent);
 const savedWallpaper = localStorage.getItem('angel.wallpaper');
-if (savedWallpaper) document.documentElement.dataset.wallpaper = savedWallpaper;
+const savedCustomWallpaper = localStorage.getItem('angel.wallpaper.custom');
+if (savedWallpaper === 'custom' && savedCustomWallpaper) {
+  document.documentElement.style.setProperty('--wallpaper-image', `url("${savedCustomWallpaper}")`);
+  document.documentElement.dataset.wallpaper = 'custom';
+} else if (savedWallpaper && savedWallpaper !== 'custom') {
+  document.documentElement.dataset.wallpaper = savedWallpaper;
+}
 
 tick();
 setInterval(tick, 1000);

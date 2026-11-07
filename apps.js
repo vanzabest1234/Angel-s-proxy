@@ -7,13 +7,6 @@ import { ai } from './apps/ai.js';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const attr = (s) => esc(s).replace(/"/g, '&quot;');
 
-const formatSize = (bytes) => {
-  if (!bytes) return '0 B';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-};
-
 /* ---------- README ---------- */
 function markdown(md) {
   const out = [];
@@ -59,268 +52,9 @@ async function renderReadme(body) {
   }
 }
 
-/* ---------- This PC ---------- */
-async function renderFiles(body) {
-  body.innerHTML = `
-    <div class="explorer">
-      <div class="explorer-head"><strong>Angel-s-proxy</strong><span>This PC › Repository</span></div>
-      <div class="explorer-list" data-list><p class="app-loading">Reading folder…</p></div>
-      <div class="explorer-preview" data-preview><p class="muted">Select a file to preview it.</p></div>
-    </div>`;
-
-  const list = body.querySelector('[data-list]');
-  const preview = body.querySelector('[data-preview]');
-
-  try {
-    const res = await fetch('/api/files', { cache: 'no-store' });
-    const items = await res.json();
-    list.innerHTML = items
-      .map((file) => `<button class="file" data-path="${attr(file.path)}">
-        <span class="file-icon ${file.dir ? 'is-dir' : 'is-doc'}" aria-hidden="true"></span>
-        <span class="file-name">${esc(file.path)}</span>
-        <span class="file-size">${file.dir ? '' : formatSize(file.size)}</span>
-      </button>`)
-      .join('');
-
-    list.querySelectorAll('.file').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const path = btn.dataset.path;
-        list.querySelectorAll('.file.is-selected').forEach((b) => b.classList.remove('is-selected'));
-        btn.classList.add('is-selected');
-        preview.innerHTML = '<p class="app-loading">Opening…</p>';
-        const file = await fetch(`/api/file?path=${encodeURIComponent(path)}`).then((r) => r.json());
-        preview.innerHTML = `<div class="preview-head">${esc(path)}</div>` +
-          (file.binary ? '<p class="muted">No preview for this file type.</p>' : `<pre class="preview-text">${esc(file.content)}</pre>`);
-      });
-    });
-  } catch {
-    list.innerHTML = '<p class="app-loading">Could not read the folder.</p>';
-  }
-}
-
-/* ---------- Edge ---------- */
-const isUrl = (value) => !/\s/.test(value) && /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}([/?#].*)?$/i.test(value);
-const withScheme = (value) => (/^https?:\/\//i.test(value) ? value : `https://${value}`);
-
-const flattenTopics = (topics) => topics.flatMap((topic) =>
-  topic.Topics ? flattenTopics(topic.Topics) : (topic.FirstURL && topic.Text ? [topic] : []));
-
-function renderBrowser(body) {
-  body.innerHTML = `
-    <div class="browser">
-      <div class="browser-bar">
-        <button class="nav" data-nav="back" aria-label="Back">&#8249;</button>
-        <button class="nav" data-nav="forward" aria-label="Forward">&#8250;</button>
-        <button class="nav" data-nav="reload" aria-label="Reload">&#8635;</button>
-        <form class="address" role="search">
-          <input class="url" aria-label="Search or enter an address" placeholder="Search DuckDuckGo or enter an address" autocomplete="off" spellcheck="false">
-        </form>
-      </div>
-      <div class="browser-page" data-page></div>
-    </div>`;
-
-  const page = body.querySelector('[data-page]');
-  const input = body.querySelector('.url');
-  let history = [{ type: 'home' }];
-  let index = 0;
-  let current = null;
-  let visitToken = 0;
-
-  const home = () => {
-    current = null;
-    input.value = '';
-    page.innerHTML = `
-      <div class="ddg-home">
-        <div class="ddg-word">DuckDuckGo</div>
-        <p class="ddg-tag">Search privately, right from Angel's Windows.</p>
-        <form class="ddg-form">
-          <input class="ddg-input" aria-label="Search DuckDuckGo" placeholder="Search DuckDuckGo">
-          <button class="ddg-go" type="submit">Search</button>
-        </form>
-        <div class="ddg-chips">
-          ${['Windows 11', 'DuckDuckGo privacy', 'web browsers'].map((q) => `<button class="chip" data-q="${attr(q)}">${esc(q)}</button>`).join('')}
-        </div>
-      </div>`;
-
-    page.querySelector('.ddg-form').addEventListener('submit', (event) => {
-      event.preventDefault();
-      go(page.querySelector('.ddg-input').value);
-    });
-    page.querySelectorAll('.chip').forEach((chip) => {
-      chip.addEventListener('click', () => go(chip.dataset.q));
-    });
-  };
-
-  const search = async (query) => {
-    current = null;
-    input.value = query;
-    page.innerHTML = `<div class="ddg-results"><p class="app-loading">Searching DuckDuckGo for “${esc(query)}”…</p></div>`;
-    try {
-      const res = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`);
-      const data = await res.json();
-      const topics = flattenTopics(data.RelatedTopics || []).slice(0, 8);
-      const allResults = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
-
-      const answer = data.AbstractText
-        ? `<article class="ddg-card">
-             <h2>${esc(data.Heading || query)}</h2>
-             <p>${esc(data.AbstractText)}</p>
-             ${data.AbstractURL ? `<a href="${attr(data.AbstractURL)}" target="_blank" rel="noopener noreferrer">${esc(data.AbstractSource || 'Read more')} &#8599;</a>` : ''}
-           </article>`
-        : '';
-
-      const related = topics
-        .map((topic) => `<button class="ddg-result" data-title="${attr(topic.Text.split(' - ')[0])}">
-            <strong>${esc(topic.Text.split(' - ')[0])}</strong>
-            <span>${esc(topic.Text.split(' - ').slice(1).join(' - ').slice(0, 110))}</span>
-          </button>`)
-        .join('');
-
-      page.innerHTML = `<div class="ddg-results">
-        <div class="ddg-results-head">
-          <h2>${esc(query)}</h2>
-          <a class="ddg-all" href="${attr(allResults)}" target="_blank" rel="noopener noreferrer">All results on DuckDuckGo &#8599;</a>
-        </div>
-        ${answer}
-        ${related ? `<h3 class="ddg-sub">Related</h3><div class="ddg-list">${related}</div>` : ''}
-        ${!answer && !related ? '<p class="muted">No instant answer for that one — open the full results on DuckDuckGo.</p>' : ''}
-      </div>`;
-
-      page.querySelectorAll('.ddg-result[data-title]').forEach((btn) => {
-        btn.addEventListener('click', () => push({ type: 'search', query: btn.dataset.title }));
-      });
-    } catch {
-      page.innerHTML = `<div class="ddg-results">
-        <p>DuckDuckGo didn't answer inside the app.</p>
-        <a class="ddg-all" href="https://duckduckgo.com/?q=${encodeURIComponent(query)}" target="_blank" rel="noopener noreferrer">Open the search on DuckDuckGo &#8599;</a>
-      </div>`;
-    }
-  };
-
-  const readerView = (data) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'reader';
-
-    const head = document.createElement('header');
-    head.className = 'reader-head';
-    const title = document.createElement('h1');
-    title.textContent = data.title || data.url;
-    const meta = document.createElement('p');
-    meta.className = 'reader-meta';
-    meta.textContent = data.site ? `${data.site} · ` : '';
-    const real = document.createElement('a');
-    real.href = data.url;
-    real.target = '_blank';
-    real.rel = 'noopener noreferrer';
-    real.textContent = 'Open the real page ↗';
-    meta.append(real);
-    head.append(title, meta);
-    wrap.append(head);
-
-    const article = document.createElement('article');
-    article.className = 'reader-body';
-    let list = null;
-
-    for (const block of data.blocks || []) {
-      if (block.t === 'li') {
-        if (!list) { list = document.createElement('ul'); article.append(list); }
-        const item = document.createElement('li');
-        item.textContent = block.text;
-        list.append(item);
-        continue;
-      }
-      list = null;
-
-      if (block.t === 'img') {
-        const figure = document.createElement('figure');
-        const img = document.createElement('img');
-        img.loading = 'lazy';
-        img.alt = block.alt || '';
-        img.src = `/img?url=${encodeURIComponent(block.src)}&ref=${encodeURIComponent(data.url)}`;
-        img.addEventListener('error', () => figure.remove());
-        figure.append(img);
-        if (block.alt) {
-          const caption = document.createElement('figcaption');
-          caption.textContent = block.alt;
-          figure.append(caption);
-        }
-        article.append(figure);
-        continue;
-      }
-
-      const tag = block.t === 'h' ? (block.level >= 3 ? 'h3' : 'h2')
-        : block.t === 'q' ? 'blockquote'
-          : block.t === 'pre' ? 'pre' : 'p';
-      const node = document.createElement(tag);
-      node.textContent = block.text;
-      article.append(node);
-    }
-
-    if (!article.childElementCount) {
-      const empty = document.createElement('p');
-      empty.className = 'muted';
-      empty.textContent = data.note || 'This page has no readable text — open the real page to see it.';
-      article.append(empty);
-    }
-
-    wrap.append(article);
-    return wrap;
-  };
-
-  const visit = async (url) => {
-    current = url;
-    input.value = url;
-    const token = ++visitToken;
-    page.innerHTML = `<div class="reader"><p class="app-loading">Opening ${esc(url.replace(/^https?:\/\//, ''))}…</p></div>`;
-
-    let data;
-    try {
-      const res = await fetch(`/read?url=${encodeURIComponent(url)}`, { cache: 'no-store' });
-      data = await res.json();
-    } catch {
-      data = { url, site: '', title: url.replace(/^https?:\/\//, ''), blocks: [], note: "Angel's proxy could not reach that address." };
-    }
-
-    if (token !== visitToken) return;
-    page.innerHTML = '';
-    page.append(readerView(data));
-  };
-
-  const show = (entry) => {
-    if (entry.type === 'search') search(entry.query);
-    else if (entry.type === 'url') visit(entry.url);
-    else home();
-  };
-
-  const push = (entry) => {
-    history = history.slice(0, index + 1);
-    history.push(entry);
-    index = history.length - 1;
-    show(entry);
-  };
-
-  const go = (raw) => {
-    const value = String(raw || '').trim();
-    if (!value) return;
-    if (isUrl(value)) push({ type: 'url', url: withScheme(value) });
-    else push({ type: 'search', query: value });
-  };
-
-  body.querySelector('.address').addEventListener('submit', (event) => {
-    event.preventDefault();
-    go(input.value);
-  });
-
-  body.querySelectorAll('[data-nav]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.nav;
-      if (action === 'back' && index > 0) { index -= 1; show(history[index]); }
-      if (action === 'forward' && index < history.length - 1) { index += 1; show(history[index]); }
-      if (action === 'reload') show(history[index]);
-    });
-  });
-
-  home();
+/* ---------- Proxy finds ---------- */
+function renderProxyFinds(body) {
+  body.innerHTML = '<div class="proxy-finds"></div>';
 }
 
 /* ---------- Settings ---------- */
@@ -339,9 +73,40 @@ const WALLPAPERS = [
   ['mint', 'Mint'],
 ];
 
+const WALLPAPER_MAX = 1920;
+
+function readCustomWallpaper(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error('Could not read the file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Unsupported image'));
+      img.onload = () => {
+        const scale = Math.min(1, WALLPAPER_MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.86));
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function applyCustomWallpaper(dataUrl) {
+  localStorage.setItem('angel.wallpaper.custom', dataUrl);
+  localStorage.setItem('angel.wallpaper', 'custom');
+  document.documentElement.style.setProperty('--wallpaper-image', `url("${dataUrl}")`);
+  document.documentElement.dataset.wallpaper = 'custom';
+}
+
 function renderSettings(body) {
   const currentAccent = localStorage.getItem('angel.accent') || ACCENTS[0][0];
   const currentWallpaper = localStorage.getItem('angel.wallpaper') || 'bloom';
+  const customWallpaper = localStorage.getItem('angel.wallpaper.custom') || '';
 
   body.innerHTML = `
     <div class="settings">
@@ -358,7 +123,14 @@ function renderSettings(body) {
       <h2>Wallpaper</h2>
       <div class="wallpapers">
         ${WALLPAPERS.map(([id, name]) => `<button class="wp${id === currentWallpaper ? ' is-on' : ''}" data-wallpaper="${id}"><span class="wp-swatch wp-${id}"></span><em>${name}</em></button>`).join('')}
+        <button class="wp${currentWallpaper === 'custom' ? ' is-on' : ''}" data-wallpaper="custom"><span class="wp-swatch wp-custom"></span><em>Custom</em></button>
       </div>
+      <div class="wallpaper-tools">
+        <button type="button" class="wall-pick">Choose image…</button>
+        <button type="button" class="wall-clear"${customWallpaper ? '' : ' hidden'}>Remove</button>
+        <span class="wall-status" data-wall-status>PNG, JPG or WebP — saved in this browser.</span>
+      </div>
+      <input type="file" id="wall-file" accept="image/*" hidden>
 
       <h2>About</h2>
       <dl class="about">
@@ -378,12 +150,58 @@ function renderSettings(body) {
     });
   });
 
+  const fileInput = body.querySelector('#wall-file');
+  const customTile = body.querySelector('[data-wallpaper="custom"]');
+  const customSwatch = body.querySelector('.wp-custom');
+  const clearBtn = body.querySelector('.wall-clear');
+  const status = body.querySelector('[data-wall-status]');
+  const idleStatus = 'PNG, JPG or WebP — saved in this browser.';
+
+  if (customWallpaper) customSwatch.style.backgroundImage = `url("${customWallpaper}")`;
+
   body.querySelectorAll('[data-wallpaper]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      document.documentElement.dataset.wallpaper = btn.dataset.wallpaper;
-      localStorage.setItem('angel.wallpaper', btn.dataset.wallpaper);
+      const id = btn.dataset.wallpaper;
+      if (id === 'custom') {
+        if (!localStorage.getItem('angel.wallpaper.custom')) { fileInput.click(); return; }
+        applyCustomWallpaper(localStorage.getItem('angel.wallpaper.custom'));
+        mark('[data-wallpaper]', btn);
+        return;
+      }
+      document.documentElement.dataset.wallpaper = id;
+      localStorage.setItem('angel.wallpaper', id);
       mark('[data-wallpaper]', btn);
     });
+  });
+
+  body.querySelector('.wall-pick').addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    status.textContent = 'Applying…';
+    try {
+      const dataUrl = await readCustomWallpaper(file);
+      applyCustomWallpaper(dataUrl);
+      customSwatch.style.backgroundImage = `url("${dataUrl}")`;
+      clearBtn.hidden = false;
+      mark('[data-wallpaper]', customTile);
+      status.textContent = 'Saved in this browser.';
+    } catch {
+      status.textContent = 'That image could not be used — try a smaller PNG, JPG or WebP.';
+    }
+    fileInput.value = '';
+  });
+
+  clearBtn.addEventListener('click', () => {
+    localStorage.removeItem('angel.wallpaper.custom');
+    localStorage.setItem('angel.wallpaper', 'bloom');
+    document.documentElement.style.removeProperty('--wallpaper-image');
+    document.documentElement.dataset.wallpaper = 'bloom';
+    customSwatch.style.backgroundImage = '';
+    clearBtn.hidden = true;
+    status.textContent = idleStatus;
+    mark('[data-wallpaper]', body.querySelector('[data-wallpaper="bloom"]'));
   });
 }
 
@@ -441,6 +259,69 @@ function renderStore(body, ctx) {
   });
 }
 
+/* ---------- Games ---------- */
+const GAMES_URL = 'https://cdn.jsdelivr.net/gh/VoidNetworkOnTop/pecho@main/loader.svg';
+
+function renderGames(body) {
+  body.innerHTML = `
+    <div class="embed">
+      <p class="embed-note">None of these games are made by me — all credit goes to the original owner.</p>
+      <iframe class="embed-frame" src="${GAMES_URL}" title="Games" allow="fullscreen; autoplay" referrerpolicy="no-referrer"></iframe>
+    </div>`;
+}
+
+/* ---------- Movies ---------- */
+const MOVIES_URL = 'https://thd.sagarshrestha1999.com.np/movies';
+
+function renderMovies(body) {
+  body.innerHTML = `
+    <div class="embed">
+      <p class="embed-note">None of this is made by me — all credit goes to whoever owns this site.</p>
+      <iframe class="embed-frame" src="${MOVIES_URL}" title="Movies" allow="fullscreen; autoplay" referrerpolicy="no-referrer"></iframe>
+    </div>`;
+}
+
+/* ---------- Music ---------- */
+function renderMusic(body) {
+  body.innerHTML = `
+    <div class="music">
+      <div class="music-head">
+        <span class="music-art" aria-hidden="true"></span>
+        <div>
+          <strong data-track>No song yet</strong>
+          <em data-state>Pick a song from your device to start.</em>
+        </div>
+      </div>
+      <audio class="music-audio" data-audio controls hidden></audio>
+      <button class="music-pick" type="button">
+        <input type="file" accept="audio/*" data-file hidden>
+        Choose a song
+      </button>
+    </div>`;
+
+  const audio = body.querySelector('[data-audio]');
+  const track = body.querySelector('[data-track]');
+  const state = body.querySelector('[data-state]');
+  const file = body.querySelector('[data-file]');
+
+  body.querySelector('.music-pick').addEventListener('click', () => file.click());
+
+  file.addEventListener('change', () => {
+    const picked = file.files && file.files[0];
+    if (!picked) return;
+    audio.src = URL.createObjectURL(picked);
+    audio.hidden = false;
+    track.textContent = picked.name.replace(/\.[^.]+$/, '');
+    state.textContent = 'Playing';
+    audio.play().catch(() => { state.textContent = 'Press play to start'; });
+    window.dispatchEvent(new CustomEvent('angel:nowplaying', { detail: { audio, title: track.textContent } }));
+  });
+
+  audio.addEventListener('play', () => { state.textContent = 'Playing'; });
+  audio.addEventListener('pause', () => { state.textContent = 'Paused'; });
+  audio.addEventListener('ended', () => { state.textContent = 'Finished'; });
+}
+
 /* ---------- registry ---------- */
 export const apps = {
   readme: {
@@ -450,19 +331,33 @@ export const apps = {
     desc: 'The repository README, rendered as a document.',
     render: renderReadme,
   },
-  files: {
-    name: 'This PC',
-    title: 'This PC — Angel-s-proxy',
-    tile: 'tile-pc',
-    desc: 'Browse the repository files and preview them.',
-    render: renderFiles,
+  games: {
+    name: 'Games',
+    title: 'Games',
+    tile: 'tile-games',
+    desc: 'A pile of browser games, hosted by their original owner.',
+    render: renderGames,
+  },
+  movies: {
+    name: 'Movies',
+    title: 'Movies',
+    tile: 'tile-movies',
+    desc: 'Movies hosted by someone else — all credit to them.',
+    render: renderMovies,
+  },
+  music: {
+    name: 'Music',
+    title: 'Music',
+    tile: 'tile-music',
+    desc: 'Play a song and it shows up in the taskbar.',
+    render: renderMusic,
   },
   browser: {
-    name: 'Edge',
-    title: 'Edge — DuckDuckGo',
-    tile: 'tile-edge',
-    desc: 'Search DuckDuckGo privately or open an address.',
-    render: renderBrowser,
+    name: 'Proxy finds',
+    title: 'Proxy finds',
+    tile: 'tile-proxy',
+    desc: 'A blank window, ready for proxy links.',
+    render: renderProxyFinds,
   },
   notes: {
     name: 'Notes',
