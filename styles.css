@@ -695,6 +695,16 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   cursor: pointer;
 }
 
+/* ---------- Games made by me ---------- */
+.mygames { padding: 24px 28px 30px; }
+.mygames h1 { font-size: 22px; margin: 0 0 4px; }
+.mygames-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; }
+.mygames-card { display: grid; gap: 8px; padding: 14px; border: 1px solid #e6e8ee; border-radius: 10px; background: #fbfcfe; }
+.mygames-card .tile { width: 32px; height: 32px; border-radius: 7px; }
+.mygames-card h2 { font-size: 14px; margin: 0; }
+.mygames-card p { margin: 0; font-size: 12px; line-height: 1.55; color: #6b7280; }
+.mygames-empty { margin-top: 18px; padding: 44px 20px; border: 1px dashed #dcdfe6; border-radius: 12px; text-align: center; font-size: 13px; color: #6b7280; }
+
 /* ---------- watermark ---------- */
 .watermark {
   position: absolute;
