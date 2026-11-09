@@ -62,6 +62,24 @@ function focusWindow(id) {
   entry.el.style.zIndex = String(++z);
   document.querySelectorAll('.window.is-active').forEach((w) => w.classList.remove('is-active'));
   entry.el.classList.add('is-active');
+  syncTaskbar();
+}
+
+/* Running-app dots on the taskbar */
+function syncTaskbar() {
+  document.querySelectorAll('.tb-btn.tb-app').forEach((btn) => {
+    const entry = open.get(btn.dataset.app);
+    const visible = entry && !entry.el.classList.contains('is-min');
+    const active = visible && entry.el.classList.contains('is-active');
+    if (visible) btn.dataset.running = 'true'; else delete btn.dataset.running;
+    if (active) btn.dataset.active = 'true'; else delete btn.dataset.active;
+  });
+}
+
+function minimizeWindow(entry) {
+  entry.el.classList.remove('is-active');
+  entry.el.classList.add('is-min');
+  syncTaskbar();
 }
 
 function createWindow({ id, title, body }) {
@@ -85,12 +103,23 @@ function createWindow({ id, title, body }) {
   el.querySelectorAll('[data-action]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const action = btn.dataset.action;
-      if (action === 'close' || action === 'minimize') el.classList.add('is-hidden');
-      if (action === 'maximize') el.classList.toggle('is-max');
+      if (action === 'close' || action === 'minimize') {
+        const entry = open.get(id);
+        if (entry) minimizeWindow(entry); else el.classList.add('is-min');
+        syncTaskbar();
+      }
+      if (action === 'maximize') { el.classList.toggle('is-max'); focusWindow(id); }
     });
+  });
+  el.querySelector('.titlebar').addEventListener('dblclick', (event) => {
+    if (event.target.closest('.win-controls')) return;
+    el.classList.toggle('is-max');
+    focusWindow(id);
   });
   el.addEventListener('mousedown', () => focusWindow(id));
   windowsEl.append(el);
+  el.classList.add('is-opening');
+  el.addEventListener('animationend', () => el.classList.remove('is-opening'), { once: true });
   if (body) el.querySelector('.win-body').append(body);
   opened += 1;
   return { el, body: el.querySelector('.win-body') };
@@ -108,15 +137,26 @@ export function openApp(id) {
     open.set(id, entry);
     def.render(win.body, { openApp, appsList: apps });
   } else {
-    entry.el.classList.remove('is-hidden');
+    entry.el.classList.remove('is-min', 'is-hidden');
   }
 
   focusWindow(id);
   closeStart();
 }
 
+function toggleApp(id) {
+  const entry = open.get(id);
+  if (!entry) return openApp(id);
+  if (entry.el.classList.contains('is-min')) return openApp(id);
+  if (entry.el.classList.contains('is-active')) return minimizeWindow(entry);
+  focusWindow(id);
+}
+
 document.querySelectorAll('[data-app]').forEach((el) => {
-  el.addEventListener('click', () => openApp(el.dataset.app));
+  el.addEventListener('click', () => {
+    if (el.classList.contains('tb-app')) toggleApp(el.dataset.app);
+    else openApp(el.dataset.app);
+  });
 });
 
 /* ---------- desktop background ---------- */
@@ -125,8 +165,9 @@ const desktopEl = document.querySelector('.desktop');
 function sendToBackground() {
   open.forEach(({ el }) => {
     el.classList.remove('is-active');
-    el.classList.add('is-hidden');
+    el.classList.add('is-min');
   });
+  syncTaskbar();
 }
 
 desktopEl.addEventListener('click', (event) => {

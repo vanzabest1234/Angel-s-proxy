@@ -696,31 +696,133 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
 }
 
 /* ---------- Games made by me ---------- */
-.mygames { padding: 24px 28px 30px; }
-.mygames h1 { font-size: 22px; margin: 0 0 4px; }
-.mygames-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 18px; }
-.mygames-card {
-  display: grid; gap: 8px; padding: 14px; text-align: left;
-  border: 1px solid #e6e8ee; border-radius: 10px; background: #fbfcfe;
-  font: inherit; color: inherit; cursor: pointer;
+.window[data-app="mygames"] { width: min(1040px, calc(100vw - 44px)); height: min(760px, calc(100vh - 100px)); }
+.window[data-app="mygames"] .win-body { background: #f6f7fb; }
+.mygames { padding: 0 0 26px; }
+
+.mg-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 26px 28px 24px;
+  color: #fff;
+  background: radial-gradient(130% 170% at 0% 0%, #2c7a45 0%, #14452a 44%, #0c1016 100%);
 }
-.mygames-card:hover { background: #f2f5fb; border-color: #ccd3e0; }
-.window[data-app="mygames"] { width: min(1000px, calc(100vw - 44px)); height: min(720px, calc(100vh - 100px)); }
+.mg-hero::after {
+  content: "";
+  position: absolute;
+  right: -70px; top: -110px;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(110, 231, 168, 0.35), transparent 70%);
+  pointer-events: none;
+}
+.mg-kicker { margin: 0 0 6px; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #8de0ac; }
+.mg-hero h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
+.mg-sub { margin: 6px 0 0; max-width: 46ch; font-size: 12.5px; color: rgba(255, 255, 255, 0.66); }
+.mg-count {
+  position: relative;
+  display: grid; justify-items: center;
+  padding: 9px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.mg-count b { font-size: 22px; line-height: 1.1; }
+.mg-count span { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); }
+
+.mg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+  padding: 22px 28px 0;
+}
+.mg-card {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: #fff;
+  border: 1px solid #e3e6ef;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+.mg-card:hover { transform: translateY(-3px); border-color: #cfd6e6; box-shadow: 0 16px 30px rgba(18, 24, 40, 0.13); }
+.mg-card:active { transform: translateY(-1px) scale(0.995); }
+.mg-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mg-cover {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 15px),
+    linear-gradient(160deg, #58d98a, #1c8a4a 55%, #0b3d22);
+}
+.mg-cover-ball {
+  position: relative;
+  width: 30px; height: 19px;
+  border-radius: 50% / 50%;
+  background: #b4662f;
+  border: 1.5px solid #f6efe6;
+  transform: rotate(-18deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.mg-cover-ball::after {
+  content: "";
+  position: absolute;
+  left: 6px; right: 6px; top: 50%;
+  height: 1.5px;
+  background: #f6efe6;
+  transform: translateY(-50%);
+}
+.mg-body { display: grid; align-content: center; gap: 5px; padding: 14px 16px; }
+.mg-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mg-title { font-size: 15px; font-weight: 600; color: #1f2329; }
+.mg-play {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #12703a; background: #e6f7ec; border-radius: 999px; padding: 3px 9px;
+  white-space: nowrap;
+}
+.mg-card:hover .mg-play { background: #12703a; color: #fff; }
+.mg-desc { font-size: 12px; line-height: 1.5; color: #6b7280; }
+.mg-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.mg-pill {
+  font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;
+  color: #4b5563; background: #f1f3f8; border-radius: 999px; padding: 3px 8px;
+}
+.mg-best { margin-left: auto; font-size: 10.5px; font-weight: 700; color: #8a5a00; background: #fff4d6; border-radius: 999px; padding: 3px 8px; }
+
 .mygames-game { display: flex; flex-direction: column; height: 100%; background: #0b120d; }
 .mygames-bar {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 12px; background: #111a14; border-bottom: 2px solid #23372a;
-  color: #cfe7d7; font-size: 12px; font-weight: 600;
+  padding: 8px 12px;
+  background: #111a14;
+  border-bottom: 2px solid #23372a;
+  color: #cfe7d7;
+  font-size: 12px;
+  font-weight: 600;
 }
 .mygames-back {
   border: 1px solid #33503d; border-radius: 7px; background: #1c2c22;
   color: #cfe7d7; font: inherit; font-size: 12px; padding: 5px 10px; cursor: pointer;
 }
+.mygames-back:hover { background: #264231; }
+.mg-now { font-weight: 700; letter-spacing: 0.02em; }
+.mg-live { margin-left: auto; font-size: 11px; font-weight: 700; color: #ffd84a; }
+.mygames-restart {
+  border: 1px solid #33503d; border-radius: 7px; background: transparent;
+  color: #a9c9b6; font: inherit; font-size: 11.5px; padding: 5px 10px; cursor: pointer;
+}
+.mygames-restart:hover { background: #1c2c22; color: #e6f7ec; }
 .mygames-frame { flex: 1; min-height: 0; width: 100%; border: 0; display: block; }
-.mygames-card .tile { width: 32px; height: 32px; border-radius: 7px; }
-.mygames-card h2 { font-size: 14px; margin: 0; }
-.mygames-card p { margin: 0; font-size: 12px; line-height: 1.55; color: #6b7280; }
-.mygames-empty { margin-top: 18px; padding: 44px 20px; border: 1px dashed #dcdfe6; border-radius: 12px; text-align: center; font-size: 13px; color: #6b7280; }
+.mygames-empty { margin: 22px 28px 0; padding: 44px 20px; border: 1px dashed #dcdfe6; border-radius: 12px; text-align: center; font-size: 13px; color: #6b7280; }
 
 /* ---------- watermark ---------- */
 .watermark {
@@ -973,3 +1075,108 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   .window[data-app="browser"] { height: min(600px, calc(100vh - 200px)); }
   .window.is-max { height: calc(100% - 116px); }
 }
+
+/* =====================================================
+   Desktop polish — motion, depth, running-app indicators
+   ===================================================== */
+
+/* Slow-drifting wallpaper lights */
+@keyframes bloom-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(3.5vw, -2.5vh, 0) scale(1.12); }
+}
+@keyframes ribbon-turn {
+  from { transform: translate(-50%, -50%) rotate(-16deg) scale(1); }
+  to { transform: translate(-50%, -50%) rotate(-4deg) scale(1.06); }
+}
+.bloom { animation: bloom-drift 26s ease-in-out infinite alternate; will-change: transform; }
+.bloom-b { animation-duration: 33s; animation-delay: -7s; }
+.bloom-c { animation-duration: 40s; animation-delay: -14s; }
+.ribbon { animation: ribbon-turn 52s ease-in-out infinite alternate; }
+
+/* Soft vignette so windows and icons sit on the wallpaper */
+.desktop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(255, 255, 255, 0.08), transparent 55%),
+    radial-gradient(120% 110% at 50% 115%, rgba(0, 0, 0, 0.5), transparent 62%);
+}
+
+/* Desktop icons */
+.desk-icon { transition: transform 140ms ease, background 140ms ease, border-color 140ms ease; }
+.desk-icon:hover { transform: translateY(-2px); }
+.desk-icon:active { transform: translateY(0) scale(0.97); }
+.desk-icon:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.desk-icon .tile { transition: transform 160ms ease, box-shadow 160ms ease; }
+.desk-icon:hover .tile {
+  transform: scale(1.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 9px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* Windows: deeper elevation, smooth open/restore, accent active edge */
+.window {
+  transition: transform 190ms cubic-bezier(0.2, 0.9, 0.25, 1), opacity 160ms ease, box-shadow 220ms ease;
+  box-shadow: 0 42px 96px rgba(0, 0, 0, 0.62), 0 14px 30px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.window.is-active {
+  box-shadow:
+    0 52px 118px rgba(0, 0, 0, 0.72),
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 0 34px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+.window.is-active .titlebar { border-bottom-color: color-mix(in srgb, var(--accent) 42%, #e2e4ea); }
+.window.is-opening { animation: win-in 200ms cubic-bezier(0.2, 0.9, 0.25, 1); }
+@keyframes win-in {
+  from {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx, 0px)), calc(-46% + var(--dy, 0px))) scale(0.955);
+  }
+}
+.window.is-min {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(calc(-50% + var(--dx, 0px)), calc(-42% + var(--dy, 0px))) scale(0.94);
+}
+.window.is-max.is-min { transform: scale(0.94); opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+  .window { transition: none; }
+  .window.is-opening { animation: none; }
+}
+
+/* Taskbar: running-app dots and a crisper glass edge */
+.taskbar {
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.tb-btn { position: relative; transition: background 120ms ease, transform 120ms ease; }
+.tb-btn:hover { transform: translateY(-1px); }
+.tb-btn.tb-app[data-running]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.65);
+  transform: translateX(-50%);
+  transition: width 150ms ease, background 150ms ease;
+}
+.tb-btn.tb-app[data-active]::after { width: 15px; background: var(--accent); }
+
+/* Start menu: slide up as it opens */
+.start-menu:not([hidden]) { animation: start-in 160ms cubic-bezier(0.2, 0.9, 0.25, 1); }
+@keyframes start-in {
+  from { opacity: 0; transform: translate(-50%, 12px) scale(0.985); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .start-menu:not([hidden]) { animation: none; }
+  .bloom, .ribbon { animation: none; }
+}
+
+/* Pinned-app icons in the Start menu */
+.pin .tile { transition: transform 140ms ease; }
+.pin:hover .tile { transform: scale(1.07); }
