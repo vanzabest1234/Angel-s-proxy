@@ -761,11 +761,13 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   position: relative;
   display: grid;
   place-items: center;
+}
+.mg-cover-rb {
   background:
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 15px),
     linear-gradient(160deg, #58d98a, #1c8a4a 55%, #0b3d22);
 }
-.mg-cover-ball {
+.mg-mark-rb {
   position: relative;
   width: 30px; height: 19px;
   border-radius: 50% / 50%;
@@ -774,13 +776,42 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
   transform: rotate(-18deg);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
-.mg-cover-ball::after {
+.mg-mark-rb::after {
   content: "";
   position: absolute;
   left: 6px; right: 6px; top: 50%;
   height: 1.5px;
   background: #f6efe6;
   transform: translateY(-50%);
+}
+.mg-cover-rush {
+  background:
+    linear-gradient(180deg, transparent 0 12px, rgba(255, 255, 255, 0.22) 12px 18px, transparent 18px 42px, rgba(255, 255, 255, 0.22) 42px 48px, transparent 48px 72px, rgba(255, 255, 255, 0.22) 72px 78px, transparent 78px) center / 3px 100% no-repeat,
+    linear-gradient(180deg, rgba(255, 59, 77, 0.18), rgba(0, 0, 0, 0) 45%, rgba(255, 59, 77, 0.22)),
+    linear-gradient(160deg, #2a0d14, #170a10 55%, #0b0507);
+}
+.mg-mark-rush {
+  position: relative;
+  width: 18px; height: 32px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #8c0d19, #ff3b4d 45%, #a90f1f);
+  box-shadow: 0 0 12px rgba(255, 59, 77, 0.65), 0 4px 10px rgba(0, 0, 0, 0.45);
+}
+.mg-mark-rush::before {
+  content: "";
+  position: absolute;
+  left: 3px; right: 3px; top: 6px;
+  height: 7px;
+  border-radius: 2px;
+  background: rgba(8, 11, 16, 0.75);
+}
+.mg-mark-rush::after {
+  content: "";
+  position: absolute;
+  left: 3px; right: 3px; bottom: 5px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 243, 196, 0.9);
 }
 .mg-body { display: grid; align-content: center; gap: 5px; padding: 14px 16px; }
 .mg-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }

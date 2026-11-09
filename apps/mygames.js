@@ -9,6 +9,14 @@ const GAMES = [
     tags: ['Sports', 'Pixel'],
     cover: 'rb',
   },
+  {
+    id: 'redline',
+    name: 'Redline Rush',
+    desc: 'Neon highway sprint — dodge traffic, grab coins and burn nitro for big points.',
+    page: './redline.html',
+    tags: ['Racing', 'Arcade'],
+    cover: 'rush',
+  },
 ];
 
 const statsKey = (id) => `angel.games.${id}`;
@@ -46,7 +54,7 @@ function renderMyGames(body) {
       ${GAMES.length
         ? `<div class="mg-grid">${GAMES.map((game) => `
             <button class="mg-card" type="button" data-game="${game.id}">
-              <span class="mg-cover mg-cover-${game.cover}" aria-hidden="true"><span class="mg-cover-ball"></span></span>
+              <span class="mg-cover mg-cover-${game.cover}" aria-hidden="true"><span class="mg-mark mg-mark-${game.cover}"></span></span>
               <span class="mg-body">
                 <span class="mg-head">
                   <span class="mg-title">${game.name}</span>
@@ -90,7 +98,7 @@ function openGame(body, game) {
 
   const onScore = (event) => {
     const data = event.data;
-    if (!data || data.type !== 'retrobowl:final' || event.source !== frame.contentWindow) return;
+    if (!data || data.type !== `${game.id}:final` || event.source !== frame.contentWindow) return;
     const score = Number(data.you) || 0;
     const best = Math.max(Number(readStats(game.id).best) || 0, score);
     writeStats(game.id, { best, last: score });
