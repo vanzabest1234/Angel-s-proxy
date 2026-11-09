@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retro Bowl</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #0b120d;
+    color: #e8f2e9;
+    font-family: "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+    overflow: hidden;
+  }
+  .rb { height: 100%; display: flex; flex-direction: column; }
+
+  .rb-hud {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 12px;
+    background: #111a14;
+    border-bottom: 2px solid #23372a;
+    font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+  }
+  .rb-hud b { font-size: 16px; letter-spacing: .04em; }
+  .rb-hud .rb-down { color: #ffd84a; }
+  .rb-hud .rb-clock { color: #8fe0a5; }
+
+  .rb-stage {
+    position: relative;
+    flex: 1; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding: 6px;
+    background: radial-gradient(120% 100% at 50% 0%, #14231a 0%, #0b120d 70%);
+  }
+  canvas { display: block; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+
+  .rb-msg {
+    position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%);
+    padding: 10px 18px; border-radius: 8px;
+    background: rgba(8, 14, 10, .88); border: 2px solid #2f5138;
+    color: #ffe680; font-size: 15px; font-weight: 700; letter-spacing: .05em;
+    text-align: center; pointer-events: none; white-space: nowrap;
+  }
+  .rb-msg:empty { display: none; }
+
+  .rb-controls {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 12px 12px;
+    background: #111a14;
+    border-top: 2px solid #23372a;
+  }
+  .rb-pad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(2, 40px); gap: 6px; }
+  .rb-pad .up { grid-column: 2; grid-row: 1; }
+  .rb-pad .left { grid-column: 1; grid-row: 2; }
+  .rb-pad .down { grid-column: 2; grid-row: 2; }
+  .rb-pad .right { grid-column: 3; grid-row: 2; }
+  .rb-acts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+  button {
+    font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .05em;
+    color: #d9ffe3; background: #1c2c22;
+    border: 1px solid #33503d; border-radius: 8px;
+    min-width: 44px; height: 40px; padding: 0 10px;
+    cursor: pointer; touch-action: manipulation;
+  }
+  button:active { background: #2a4433; }
+  button.rb-main { background: #2c7a45; border-color: #48b06c; color: #fff; }
+  button.rb-throw { background: #243a7a; border-color: #4763c4; color: #eaf0ff; }
+
+  .rb-hint { padding: 0 12px 8px; font-size: 10.5px; color: #6f8a78; background: #111a14; text-align: center; }
+  @media (min-width: 640px) { .rb-hint { display: none; } }
+</style>
+</head>
+<body>
+<div class="rb">
+  <div class="rb-hud">
+    <span>You <b id="rb-score">0</b></span>
+    <span class="rb-down" id="rb-down">1st &amp; 10</span>
+    <span class="rb-clock" id="rb-clock">Q1 1:30</span>
+  </div>
+  <div class="rb-stage">
+    <canvas id="field" width="1000" height="460"></canvas>
+    <div class="rb-msg" id="rb-msg">Press Snap to start the drive</div>
+  </div>
+  <div class="rb-controls">
+    <div class="rb-pad">
+      <button class="up" data-move="up" aria-label="Move up">▲</button>
+      <button class="left" data-move="left" aria-label="Move left">◀</button>
+      <button class="down" data-move="down" aria-label="Move down">▼</button>
+      <button class="right" data-move="right" aria-label="Move right">▶</button>
+    </div>
+    <div class="rb-acts">
+      <button class="rb-main" id="rb-snap">Snap</button>
+      <button id="rb-run">Run</button>
+      <button class="rb-throw" data-throw="0">1</button>
+      <button class="rb-throw" data-throw="1">2</button>
+      <button class="rb-throw" data-throw="2">3</button>
+    </div>
+  </div>
+  <div class="rb-hint">Arrows / WASD move · Snap = space · 1 2 3 = pass · R = run</div>
+</div>
+<script>
+(() => {
+  const cvs = document.getElementById('field');
+  const ctx = cvs.getContext('2d');
+  const W = cvs.width, H = cvs.height;
+  const PAD = { l: 26, r: 26, t: 34, b: 14 };
+  const FW = W - PAD.l - PAD.r;
+  const FH = H - PAD.t - PAD.b;
+  const U = FW / 120;
+  const V = FH / 50;
+  const X = (yd) => PAD.l + yd * U;
+  const Y = (yd) => PAD.t + yd * V;
+  const END = 110;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  const el = {
+    score: document.getElementById('rb-score'),
+    down: document.getElementById('rb-down'),
+    clock: document.getElementById('rb-clock'),
+    msg: document.getElementById('rb-msg'),
+    snap: document.getElementById('rb-snap'),
+    run: document.getElementById('rb-run'),
+  };
+
+  const SPEED = { qb: 7.4, rb: 7.7, wr: 7.9, def: 6.5 };
+
+  let state = 'ready';
+  let quarter = 1;
+  let clock = 90;
+  let score = 0;
+  let down = 1;
+  let firstDown = 35;
+  let los = 25;
+  let playTime = 0;
+  let last = 0;
+  let pending = null;
+  let msg = 'Press Snap to start the drive';
+  let qb, rb, receivers = [], defenders = [], carrier = null, ball = null;
+  const held = { up: false, down: false, left: false, right: false };
+
+  function setupPlay() {
+    const ys = [8, 25, 42];
+    const routes = [
+      [[los + 2, 8], [los + 20, 8], [los + 38, 7]],
+      [[los + 2, 25], [los + 9, 21], [los + 16, 17]],
+      [[los + 2, 42], [los + 11, 42], [los + 14, 46]],
+    ];
+    receivers = routes.map((pts, i) => ({ x: Math.min(los - 1, END - 1), y: ys[i], pts, wp: 0 }));
+    qb = { x: Math.max(los - 3, 1), y: 25 };
+    rb = { x: Math.max(los - 1.7, 1), y: 25 };
+    defenders = ys.map((y) => ({ x: Math.min(los + 6, END - 1), y }));
+    carrier = qb;
+    ball = null;
+    playTime = 0;
+  }
+
+  function newDrive(at) {
+    los = at;
+    down = 1;
+    firstDown = Math.min(at + 10, END);
+    setupPlay();
+    state = 'ready';
+    pending = null;
+    msg = '';
+  }
+
+  function resetGame() {
+    score = 0; quarter = 1; clock = 90;
+    newDrive(25);
+    msg = '';
+  }
+
+  function vec() {
+    let x = 0, y = 0;
+    if (held.left) x -= 1;
+    if (held.right) x += 1;
+    if (held.up) y -= 1;
+    if (held.down) y += 1;
+    const m = Math.hypot(x, y) || 1;
+    return { x: x / m, y: y / m };
+  }
+
+  function runRoute(r, dt) {
+    while (r.wp < r.pts.length) {
+      const [rawX, ty] = r.pts[r.wp];
+      const tx = clamp(rawX, 1, END - 1);
+      const dx = tx - r.x, dy = ty - r.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 0.35) { r.wp += 1; continue; }
+      const stride = Math.min(dist, SPEED.wr * dt);
+      r.x += (dx / dist) * stride;
+      r.y = clamp(r.y + (dy / dist) * stride, 1, 49);
+      return;
+    }
+  }
+
+  function updateLive(dt) {
+    clock = Math.max(0, clock - dt);
+    playTime += dt;
+
+    const v = vec();
+    const speed = carrier === qb ? SPEED.qb : (carrier === rb ? SPEED.rb : SPEED.wr);
+    carrier.x = clamp(carrier.x + v.x * speed * dt, 0.8, END - 0.2);
+    carrier.y = clamp(carrier.y + v.y * speed * dt, 1, 49);
+
+    receivers.forEach((r) => { if (r !== carrier) runRoute(r, dt); });
+
+    if (carrier.x >= END - 0.25) { touchdown(); return; }
+
+    defenders.forEach((d) => {
+      const target = carrier;
+      const dx = target.x - d.x, dy = target.y - d.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const rush = playTime < 0.55 ? 0 : 1;
+      const sp = SPEED.def * rush;
+      d.x = clamp(d.x + (dx / dist) * sp * dt, 0.5, END - 0.5);
+      d.y = clamp(d.y + (dy / dist) * sp * dt, 0.5, 49.5);
+      if (dist < 1.2) tackle();
+    });
+  }
+
+  function updateFlight(dt) {
+    clock = Math.max(0, clock - dt);
+    ball.t += dt;
+    const p = Math.min(ball.t / ball.dur, 1);
+    ball.x = ball.x0 + (ball.x1 - ball.x0) * p;
+    ball.y = ball.y0 + (ball.y1 - ball.y0) * p;
+
+    receivers.forEach((r) => runRoute(r, dt));
+    defenders.forEach((d) => {
+      const dx = ball.x1 - d.x, dy = ball.y1 - d.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      d.x = clamp(d.x + (dx / dist) * SPEED.def * 1.15 * dt, 0.5, END - 0.5);
+      d.y = clamp(d.y + (dy / dist) * SPEED.def * 1.15 * dt, 0.5, 49.5);
+    });
+
+    if (p >= 1) resolvePass();
+  }
+
+  function resolvePass() {
+    const landing = { x: ball.x1, y: ball.y1 };
+    const target = receivers[ball.i];
+    const covered = defenders.some((d) => Math.hypot(d.x - landing.x, d.y - landing.y) < 2.1);
+    const reachable = Math.hypot(target.x - landing.x, target.y - landing.y) < 6;
+    ball = null;
+    if (covered || !reachable) {
+      state = 'dead';
+      down += 1;
+      if (down > 4) {
+        msg = 'Turnover on downs';
+        pending = () => newDrive(25);
+      } else {
+        msg = 'Incomplete pass';
+        pending = () => { setupPlay(); state = 'ready'; };
+      }
+      return;
+    }
+    carrier = target;
+    carrier.x = clamp(landing.x, 1, END - 0.3);
+    carrier.y = clamp(landing.y, 1, 49);
+    state = 'live';
+    msg = '';
+  }
+
+  function tackle() {
+    if (state !== 'live') return;
+    const spot = clamp(carrier.x, 1, END - 0.1);
+    state = 'dead';
+    if (spot >= firstDown) {
+      down = 1;
+      firstDown = Math.min(spot + 10, END);
+      msg = 'First down!';
+    } else {
+      down += 1;
+      msg = 'Tackled';
+    }
+    if (down > 4) {
+      msg = 'Turnover on downs';
+      pending = () => newDrive(25);
+      return;
+    }
+    los = spot;
+    pending = () => { setupPlay(); state = 'ready'; };
+  }
+
+  function touchdown() {
+    score += 7;
+    state = 'dead';
+    msg = 'TOUCHDOWN!';
+    pending = () => newDrive(25);
+  }
+
+  function nextQuarter() {
+    quarter += 1;
+    clock = 90;
+    if (quarter > 4) {
+      state = 'over';
+      msg = 'Final — ' + score + ' points';
+      return;
+    }
+    newDrive(25);
+  }
+
+  function action() {
+    if (state === 'over') { resetGame(); return; }
+    if (state === 'ready') {
+      state = 'live';
+      playTime = 0;
+      msg = '';
+      return;
+    }
+    if (state === 'dead') {
+      if (clock <= 0) { nextQuarter(); return; }
+      const fn = pending;
+      pending = null;
+      if (fn) fn(); else setupPlay();
+      state = 'live';
+      playTime = 0;
+      msg = '';
+    }
+  }
+
+  function handoff() {
+    if (state !== 'live' || carrier !== qb) return;
+    carrier = rb;
+    carrier.y = qb.y;
+    msg = '';
+  }
+
+  function pass(i) {
+    if (state !== 'live' || carrier !== qb) return;
+    const r = receivers[i];
+    if (!r) return;
+    const x1 = clamp(r.x + 3.5, 1, END - 0.5);
+    const y1 = clamp(r.y, 1, 49);
+    const dist = Math.hypot(x1 - qb.x, y1 - qb.y);
+    ball = { i, x0: qb.x, y0: qb.y, x1, y1, x: qb.x, y: qb.y, t: 0, dur: Math.max(0.28, dist / 42) };
+    state = 'flight';
+    msg = 'Pass in the air…';
+  }
+
+  /* ---------- render ---------- */
+  function drawField() {
+    ctx.fillStyle = '#0c140f';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = '#2f7d3b';
+    ctx.fillRect(PAD.l, PAD.t, FW, FH);
+
+    for (let yd = 0; yd < 120; yd += 10) {
+      if ((yd / 10) % 2 === 0) {
+        ctx.fillStyle = 'rgba(255,255,255,0.04)';
+        ctx.fillRect(X(yd), PAD.t, 10 * U, FH);
+      }
+    }
+
+    ctx.fillStyle = '#1c6130';
+    ctx.fillRect(X(0), PAD.t, 10 * U, FH);
+    ctx.fillRect(X(110), PAD.t, 10 * U, FH);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 2;
+    for (let yd = 10; yd <= 110; yd += 5) {
+      ctx.beginPath();
+      ctx.moveTo(X(yd), PAD.t);
+      ctx.lineTo(X(yd), PAD.t + FH);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 3;
+    [0, 10, 110, 120].forEach((yd) => {
+      ctx.beginPath();
+      ctx.moveTo(X(yd), PAD.t);
+      ctx.lineTo(X(yd), PAD.t + FH);
+      ctx.stroke();
+    });
+
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.font = '600 15px ui-monospace, monospace';
+    ctx.textAlign = 'center';
+    for (let yd = 20; yd <= 100; yd += 10) {
+      const label = yd <= 60 ? yd : 120 - yd;
+      ctx.fillText(String(label), X(yd), PAD.t + 17);
+      ctx.fillText(String(label), X(yd), PAD.t + FH - 8);
+    }
+    ctx.save();
+    ctx.translate(X(5), PAD.t + FH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.font = '700 15px ui-monospace, monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText('END ZONE', 0, 5);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(X(115), PAD.t + FH / 2);
+    ctx.rotate(Math.PI / 2);
+    ctx.font = '700 15px ui-monospace, monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText('END ZONE', 0, 5);
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(255,216,74,0.9)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(X(firstDown), PAD.t);
+    ctx.lineTo(X(firstDown), PAD.t + FH);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(120,200,255,0.85)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(X(los), PAD.t);
+    ctx.lineTo(X(los), PAD.t + FH);
+    ctx.stroke();
+  }
+
+  function dot(p, color, ring) {
+    const cx = X(p.x), cy = Y(p.y);
+    const r = Math.max(7, U * 0.95);
+    if (ring) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 3, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffd84a';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+  }
+
+  function draw() {
+    drawField();
+
+    receivers.forEach((r) => dot(r, r === carrier ? '#ffffff' : '#f2f6ff', r === carrier));
+    dot(rb, rb === carrier ? '#ffffff' : '#d9e4ff', rb === carrier);
+    dot(qb, qb === carrier ? '#ffffff' : '#eef3ff', qb === carrier);
+    defenders.forEach((d) => dot(d, '#f05a45', false));
+
+    if (ball) {
+      ctx.beginPath();
+      ctx.ellipse(X(ball.x), Y(ball.y), 6, 4.2, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#b4662f';
+      ctx.fill();
+      ctx.strokeStyle = '#f6efe6';
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+    }
+  }
+
+  function downText() {
+    const names = ['1st', '2nd', '3rd', '4th'];
+    const toGo = Math.max(1, Math.round(firstDown - los));
+    return (names[down - 1] || '4th') + ' & ' + (firstDown >= END ? 'Goal' : toGo);
+  }
+
+  function hud() {
+    el.score.textContent = String(score);
+    el.down.textContent = downText();
+    const m = Math.floor(clock / 60);
+    const s = String(Math.floor(clock % 60)).padStart(2, '0');
+    el.clock.textContent = 'Q' + quarter + ' ' + m + ':' + s;
+    el.msg.textContent = msg;
+  }
+
+  function fit() {
+    const stage = cvs.parentElement;
+    const availW = stage.clientWidth - 12;
+    const availH = stage.clientHeight - 12;
+    if (availW <= 0 || availH <= 0) return;
+    const scale = Math.min(availW / W, availH / H);
+    cvs.style.width = Math.round(W * scale) + 'px';
+    cvs.style.height = Math.round(H * scale) + 'px';
+  }
+
+  function frame(ts) {
+    const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0);
+    last = ts;
+
+    if (state === 'live') updateLive(dt);
+    else if (state === 'flight') updateFlight(dt);
+
+    draw();
+    hud();
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- input ---------- */
+  const KEYS = {
+    ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+    w: 'up', s: 'down', a: 'left', d: 'right',
+    W: 'up', S: 'down', A: 'left', D: 'right',
+  };
+
+  window.addEventListener('keydown', (e) => {
+    if (KEYS[e.key]) {
+      held[KEYS[e.key]] = true;
+      e.preventDefault();
+      return;
+    }
+    if (e.key === ' ' || e.key === 'Enter') { action(); e.preventDefault(); return; }
+    if (e.key === 'r' || e.key === 'R') { handoff(); return; }
+    if (e.key === '1' || e.key === '2' || e.key === '3') { pass(Number(e.key) - 1); }
+  });
+
+  window.addEventListener('keyup', (e) => {
+    if (KEYS[e.key]) { held[KEYS[e.key]] = false; e.preventDefault(); }
+  });
+
+  document.querySelectorAll('[data-move]').forEach((btn) => {
+    const dir = btn.dataset.move;
+    const on = (e) => { e.preventDefault(); held[dir] = true; };
+    const off = (e) => { e.preventDefault(); held[dir] = false; };
+    btn.addEventListener('pointerdown', on);
+    btn.addEventListener('pointerup', off);
+    btn.addEventListener('pointerleave', off);
+    btn.addEventListener('pointercancel', off);
+  });
+
+  el.snap.addEventListener('click', action);
+  el.run.addEventListener('click', handoff);
+  document.querySelectorAll('[data-throw]').forEach((btn) => {
+    btn.addEventListener('click', () => pass(Number(btn.dataset.throw)));
+  });
+
+  window.addEventListener('resize', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(cvs.parentElement);
+
+  fit();
+  setupPlay();
+  hud();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
