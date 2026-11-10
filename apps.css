@@ -365,6 +365,35 @@
 .pad-call:hover { filter: brightness(1.06); transform: translateY(-1px); }
 .pad-call:active { transform: translateY(1px); }
 
+/* dial pad extras */
+.pad-top {
+  display: flex; align-items: center; justify-content: space-between;
+  width: min(300px, 100%); height: 22px;
+}
+.pad-brand { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #a2a8b6; }
+.pad-tone {
+  width: 24px; height: 22px; border: 0; border-radius: 6px;
+  background: transparent; color: #4f8f70;
+  font: inherit; font-size: 13px; line-height: 1; cursor: pointer;
+}
+.pad-tone:hover { background: #eef1f7; }
+.pad-tone.is-off { color: #b3b9c6; }
+.pad-display { flex-direction: column; gap: 2px; }
+.pad-who { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #12a15f; }
+.pad-key:active { background: #e6f7ee; border-color: #b8e7cd; }
+.pad-alt {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 6px; width: min(300px, 100%); justify-content: center;
+}
+.pad-alt-btn {
+  border: 0; background: transparent; padding: 4px 6px; border-radius: 6px;
+  font: inherit; font-size: 11.5px; color: #5b6270;
+  text-decoration: none; cursor: pointer;
+}
+.pad-alt-btn:hover { background: #eef1f7; color: #1f2329; }
+.pad-alt-btn[disabled], .pad-alt-btn[aria-disabled="true"] { color: #b3b9c6; cursor: default; }
+.pad-alt-btn[disabled]:hover, .pad-alt-btn[aria-disabled="true"]:hover { background: transparent; }
+
 /* contacts + recents */
 .phone-add { display: flex; gap: 6px; margin-bottom: 12px; }
 .phone-input {
@@ -439,7 +468,34 @@
 .call-name { margin-top: 4px; font-size: 20px; }
 .call-num { font-size: 12.5px; color: rgba(255, 255, 255, 0.62); }
 .call-time { min-height: 18px; font-size: 12.5px; letter-spacing: 0.18em; color: #8fe0b4; font-variant-numeric: tabular-nums; }
-.call-actions { display: flex; align-items: flex-start; gap: 18px; }
+
+/* in-call keypad */
+.phone-call { justify-content: flex-start; }
+.call-more {
+  align-self: center;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.82);
+  font: inherit; font-size: 11.5px; cursor: pointer;
+}
+.call-more:hover { background: rgba(255, 255, 255, 0.14); }
+.call-more.is-on { background: #fff; border-color: #fff; color: #07241a; font-weight: 600; }
+.call-pad {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  width: min(240px, 100%); align-self: center;
+}
+.call-key {
+  display: grid; place-content: center; gap: 1px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07); color: #fff;
+  font: inherit; font-size: 17px; cursor: pointer;
+}
+.call-key:hover { background: rgba(255, 255, 255, 0.16); }
+.call-key:active { background: rgba(143, 224, 180, 0.34); }
+.call-key small { font-size: 7.5px; letter-spacing: 0.14em; color: rgba(255, 255, 255, 0.5); }
+.call-spacer { flex: 1; min-height: 8px; }
+.call-actions { display: flex; align-items: flex-start; gap: 18px; margin-top: auto; }
 .call-btn {
   width: 66px; height: 66px; border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.22);

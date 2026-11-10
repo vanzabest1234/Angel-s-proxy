@@ -1,5 +1,7 @@
-/* Phone — dial pad, contacts and a simulated call screen.
+/* Phone — a working dial pad with real DTMF tones, contacts and a call screen.
    Numbers, contacts and recents stay in this browser. */
+
+import { playTone } from './dtmf.js';
 
 const CONTACTS_KEY = 'angel.phone.contacts';
 const RECENTS_KEY = 'angel.phone.recents';
@@ -23,8 +25,11 @@ const write = (key, value) => {
 const digits = (value) => String(value).replace(/[^\d*#]/g, '');
 
 function format(raw) {
-  const d = digits(raw);
+  const value = String(raw);
+  const intl = value.trimStart().startsWith('+');
+  const d = digits(value);
   if (!d) return '';
+  if (intl) return `+${d}`;
   if (d.includes('*') || d.includes('#')) return d;
   if (d.length <= 3) return d;
   if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
@@ -75,6 +80,7 @@ export function renderPhone(body) {
     contacts: read(CONTACTS_KEY, []),
     recents: read(RECENTS_KEY, []),
     call: null,
+    tone: true,
   };
 
   let ringTimer = null;
@@ -99,14 +105,31 @@ export function renderPhone(body) {
       <div class="call-who">
         <span class="call-avatar">${esc(initials(call.name || format(call.number)))}</span>
         <b class="call-name">${esc(call.name || format(call.number))}</b>
-        <span class="call-num">${call.name ? esc(format(call.number)) : call.connected ? 'Connected' : 'Ringing…'}</span>
+        <span class="call-num">${call.name ? esc(call.shown || format(call.number)) : call.connected ? 'Connected' : 'Ringing…'}</span>
         <span class="call-time" data-call-time>${call.connected ? clock(call.secs) : ''}</span>
       </div>
+      <button class="call-more${call.keypad ? ' is-on' : ''}" data-call-keypad>${call.keypad ? 'Hide keypad' : 'Keypad'}</button>
+      ${call.keypad ? `
+        <div class="call-pad">
+          ${KEYS.map(([key, letters]) => `<button class="call-key" data-dtmf="${key}"><span>${key}</span>${letters ? `<small>${letters}</small>` : ''}</button>`).join('')}
+        </div>` : '<span class="call-spacer"></span>'}
       <div class="call-actions">
         <button class="call-btn${call.muted ? ' is-on' : ''}" data-call-toggle="muted">Mute</button>
         <button class="call-btn${call.speaker ? ' is-on' : ''}" data-call-toggle="speaker">Speaker</button>
         <button class="call-btn call-end" data-call-end>End</button>
       </div>`;
+
+    callEl.querySelectorAll('[data-dtmf]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!state.call || !state.call.connected) return;
+        playTone(btn.dataset.dtmf, 120);
+      });
+    });
+    callEl.querySelector('[data-call-keypad]').addEventListener('click', () => {
+      if (!state.call) return;
+      state.call.keypad = !state.call.keypad;
+      drawCall();
+    });
 
     callEl.querySelectorAll('[data-call-toggle]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -125,11 +148,13 @@ export function renderPhone(body) {
     state.call = {
       number,
       name: nameOf(number),
+      shown: format(raw),
       started: Date.now(),
       connected: false,
       secs: 0,
       muted: false,
       speaker: false,
+      keypad: false,
     };
     drawCall();
 
@@ -178,11 +203,47 @@ export function renderPhone(body) {
     });
   }
 
+  function setHint(text) {
+    const hint = view.querySelector('[data-hint]');
+    if (hint) hint.textContent = text;
+  }
+
+  function pressKey(key) {
+    if (state.tone) playTone(key);
+    if (navigator.vibrate) navigator.vibrate(10);
+    state.dial = (state.dial + key).slice(0, 18);
+    drawPad();
+  }
+
+  function backspace() {
+    state.dial = state.dial.slice(0, -1);
+    drawPad();
+  }
+
+  function placeCall() {
+    if (!state.dial) {
+      setHint('Type a number first, then press call.');
+      return;
+    }
+    startCall(state.dial);
+  }
+
   function drawPad() {
+    const who = state.contacts.find((c) => digits(c.number) === digits(state.dial) && digits(state.dial).length > 2);
+    const number = format(state.dial);
+    const tel = state.dial.replace(/[^\d+*#]/g, '');
+
     view.innerHTML = `
       <div class="pad">
-        <div class="pad-display${state.dial ? '' : ' is-empty'}">${state.dial ? esc(format(state.dial)) : 'Enter a number'}</div>
-        <p class="pad-hint">Calls are simulated — nothing leaves this browser.</p>
+        <div class="pad-top">
+          <span class="pad-brand">Angel&rsquo;s Line</span>
+          <button class="pad-tone${state.tone ? '' : ' is-off'}" data-tone aria-pressed="${state.tone}" aria-label="Keypad tones">${state.tone ? '♪' : '♪̸'}</button>
+        </div>
+        <div class="pad-display${state.dial ? '' : ' is-empty'}">
+          ${who ? `<span class="pad-who">${esc(who.name)}</span>` : ''}
+          <span data-number>${state.dial ? esc(number) : 'Enter a number'}</span>
+        </div>
+        <p class="pad-hint" data-hint>${state.tone ? 'Real DTMF tones · hold 0 for +' : 'Keypad tones muted · hold 0 for +'}</p>
         <div class="pad-grid">
           ${KEYS.map(([key, letters]) => `
             <button class="pad-key" data-key="${key}">
@@ -195,28 +256,91 @@ export function renderPhone(body) {
           <button class="pad-call" data-call-start aria-label="Call">${HANDSET}</button>
           <button class="pad-back" data-clear aria-label="Clear number">✕</button>
         </div>
+        <div class="pad-alt">
+          <button class="pad-alt-btn" data-copy${state.dial ? '' : ' disabled'}>Copy number</button>
+          <a class="pad-alt-btn" data-real href="${tel ? `tel:${attr(tel)}` : '#'}"${state.dial ? '' : ' aria-disabled="true"'}>Call on this device</a>
+        </div>
       </div>`;
 
     view.querySelectorAll('[data-key]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        state.dial = (state.dial + btn.dataset.key).slice(0, 12);
-        drawPad();
+      const key = btn.dataset.key;
+      if (key === '0') return;
+      btn.addEventListener('click', () => pressKey(key));
+    });
+
+    /* hold 0 for +, like a real phone */
+    const zero = view.querySelector('[data-key="0"]');
+    let holdTimer = null;
+    let heldAt = 0;
+    zero.addEventListener('pointerdown', () => {
+      holdTimer = setTimeout(() => {
+        heldAt = Date.now();
+        pressKey('+');
+      }, 550);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((type) => {
+      zero.addEventListener(type, () => {
+        clearTimeout(holdTimer);
+        holdTimer = null;
       });
     });
-    view.querySelector('[data-back]').addEventListener('click', () => {
-      state.dial = state.dial.slice(0, -1);
-      drawPad();
+    zero.addEventListener('click', () => {
+      if (Date.now() - heldAt < 500) return;
+      pressKey('0');
     });
+
+    /* hold ⌫ to clear the whole number */
+    const back = view.querySelector('[data-back]');
+    let clearTimer = null;
+    let clearedAt = 0;
+    back.addEventListener('pointerdown', () => {
+      clearTimer = setTimeout(() => {
+        clearedAt = Date.now();
+        setHint('Number cleared.');
+        state.dial = '';
+        drawPad();
+      }, 650);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((type) => {
+      back.addEventListener(type, () => {
+        clearTimeout(clearTimer);
+        clearTimer = null;
+      });
+    });
+    back.addEventListener('click', () => {
+      if (Date.now() - clearedAt < 500) return;
+      backspace();
+    });
+
     view.querySelector('[data-clear]').addEventListener('click', () => {
       state.dial = '';
       drawPad();
     });
-    view.querySelector('[data-call-start]').addEventListener('click', () => {
-      if (!state.dial) {
-        view.querySelector('.pad-hint').textContent = 'Type a number first, then press call.';
-        return;
+    view.querySelector('[data-call-start]').addEventListener('click', placeCall);
+
+    view.querySelector('[data-tone]').addEventListener('click', () => {
+      state.tone = !state.tone;
+      drawPad();
+      if (state.tone) playTone('5');
+    });
+
+    const copy = view.querySelector('[data-copy]');
+    copy.addEventListener('click', async () => {
+      if (!state.dial) return;
+      try {
+        await navigator.clipboard.writeText(format(state.dial));
+        setHint('Number copied.');
+      } catch {
+        setHint('Could not copy — select the number instead.');
       }
-      startCall(state.dial);
+    });
+
+    const real = view.querySelector('[data-real]');
+    real.addEventListener('click', (event) => {
+      if (!state.dial) {
+        event.preventDefault();
+        setHint('Type a number first, then call.');
+      }
     });
   }
 
@@ -316,6 +440,21 @@ export function renderPhone(body) {
     else if (state.view === 'recents') drawRecents();
     else drawPad();
   }
+
+  /* a physical keypad works too, while the Phone window is the active one */
+  const win = body.closest('.window');
+  document.addEventListener('keydown', (event) => {
+    if (state.call || state.view !== 'pad') return;
+    if (!body.isConnected || !win || !win.classList.contains('is-active')) return;
+    const target = event.target;
+    if (target && target.closest && target.closest('input, textarea, [contenteditable="true"]')) return;
+
+    if (/^[0-9*#]$/.test(event.key)) { event.preventDefault(); pressKey(event.key); }
+    else if (event.key === '+') { event.preventDefault(); pressKey('+'); }
+    else if (event.key === 'Backspace') { event.preventDefault(); backspace(); }
+    else if (event.key === 'Enter') { event.preventDefault(); placeCall(); }
+    else if (event.key === 'Escape') { state.dial = ''; drawPad(); }
+  });
 
   draw();
 }
