@@ -302,3 +302,159 @@
   .ai-rail-head { padding-bottom: 6px; }
   .ai-model { display: none; }
 }
+
+/* ---------- Phone ---------- */
+.phone { position: relative; display: flex; flex-direction: column; height: 100%; background: #f6f7fb; }
+.phone-tabs {
+  display: flex; gap: 2px;
+  padding: 8px 10px 0;
+  background: #fff;
+  border-bottom: 1px solid #e6e8ee;
+}
+.phone-tab {
+  border: 0; border-radius: 6px 6px 0 0;
+  background: transparent;
+  font: inherit; font-size: 12.5px; color: #5b6270;
+  padding: 8px 12px; cursor: pointer;
+}
+.phone-tab:hover { background: #f2f4f8; }
+.phone-tab.is-on { background: #f3fbf6; color: #0b6b3f; font-weight: 600; box-shadow: inset 0 -2px 0 #12a15f; }
+.phone-body { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 20px; }
+
+/* keypad */
+.pad { display: grid; justify-items: center; }
+.pad-display {
+  min-height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; letter-spacing: 0.01em; color: #1f2329;
+  word-break: break-all; text-align: center;
+}
+.pad-display.is-empty { font-size: 15px; color: #9aa0ae; }
+.pad-hint { margin: 0 0 10px; min-height: 16px; font-size: 11.5px; color: #8a90a0; text-align: center; }
+.pad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: min(300px, 100%); }
+.pad-key {
+  display: grid; place-content: center; gap: 1px;
+  aspect-ratio: 1.4;
+  border: 1px solid #e3e6ec; border-radius: 10px;
+  background: #fff;
+  font: inherit; font-size: 19px; color: #1f2329;
+  cursor: pointer;
+  transition: background 110ms ease, transform 90ms ease;
+}
+.pad-key:hover { background: #eef1f7; }
+.pad-key:active { transform: translateY(1px); }
+.pad-key small { font-size: 8.5px; letter-spacing: 0.14em; color: #9aa0ae; }
+.pad-foot {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  margin-top: 12px; width: min(300px, 100%);
+}
+.pad-back {
+  width: 44px; height: 44px; border: 0; border-radius: 50%;
+  background: transparent; color: #5b6270;
+  font: inherit; font-size: 15px; cursor: pointer;
+}
+.pad-back:hover { background: #eef1f7; }
+.pad-call {
+  width: 56px; height: 56px; border: 0; border-radius: 50%;
+  background: #12a15f; color: #fff; cursor: pointer;
+  display: grid; place-items: center;
+  box-shadow: 0 6px 16px rgba(18, 161, 95, 0.32);
+  transition: transform 110ms ease, filter 110ms ease;
+}
+.pad-call svg { width: 24px; height: 24px; }
+.pad-call:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.pad-call:active { transform: translateY(1px); }
+
+/* contacts + recents */
+.phone-add { display: flex; gap: 6px; margin-bottom: 12px; }
+.phone-input {
+  flex: 1; min-width: 0; height: 32px; padding: 0 9px;
+  border: 1px solid #dcdfe6; border-radius: 6px;
+  font: inherit; font-size: 12.5px; color: #25292f;
+}
+.phone-input:focus { outline: 2px solid rgba(18, 161, 95, 0.35); outline-offset: -1px; }
+.phone-go {
+  height: 32px; padding: 0 14px;
+  border: 0; border-radius: 6px;
+  background: #12a15f; color: #fff;
+  font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.phone-go:hover { filter: brightness(1.06); }
+.phone-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; font-size: 11.5px; color: #8a90a0; }
+.phone-clear { border: 0; background: transparent; font: inherit; font-size: 11.5px; color: #b02a37; cursor: pointer; }
+.phone-clear:hover { text-decoration: underline; }
+.phone-list { display: grid; gap: 6px; }
+.list-row {
+  display: flex; align-items: center;
+  background: #fff; border: 1px solid #eceef2; border-radius: 9px;
+  overflow: hidden;
+}
+.list-row:hover { border-color: #d8dde8; }
+.row-main {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px;
+  border: 0; background: transparent;
+  font: inherit; text-align: left; cursor: pointer;
+}
+.row-main:hover { background: #f7f9fc; }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: #e7f6ee; color: #0b6b3f;
+  font-size: 12px; font-weight: 600;
+}
+.avatar.is-missed { background: #fdebec; color: #b02a37; }
+.who { display: grid; gap: 1px; min-width: 0; }
+.who b { font-size: 13.5px; font-weight: 600; color: #1f2329; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who span { font-size: 11.5px; color: #8a90a0; }
+.row-dur { margin-left: auto; font-size: 11px; color: #8a90a0; white-space: nowrap; }
+.row-x {
+  width: 34px; height: 100%; min-height: 36px;
+  border: 0; border-left: 1px solid #f1f3f7;
+  background: transparent; color: #b3b9c6;
+  font: inherit; font-size: 12px; cursor: pointer;
+}
+.row-x:hover { background: #fdebec; color: #b02a37; }
+.phone-empty { margin: 8px 0 0; font-size: 12.5px; color: #8a90a0; }
+
+/* in-call screen */
+.phone-call {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  gap: 14px; padding: 26px 20px 22px;
+  background: radial-gradient(120% 90% at 50% 0%, #0f5c3f, #07241a 70%, #051a13);
+  color: #fff;
+}
+.phone-call[hidden] { display: none; }
+.call-kicker { margin: 0; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #8fe0b4; }
+.call-who { display: grid; justify-items: center; gap: 6px; text-align: center; }
+.call-avatar {
+  width: 86px; height: 86px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 30px; font-weight: 600;
+}
+.call-name { margin-top: 4px; font-size: 20px; }
+.call-num { font-size: 12.5px; color: rgba(255, 255, 255, 0.62); }
+.call-time { min-height: 18px; font-size: 12.5px; letter-spacing: 0.18em; color: #8fe0b4; font-variant-numeric: tabular-nums; }
+.call-actions { display: flex; align-items: flex-start; gap: 18px; }
+.call-btn {
+  width: 66px; height: 66px; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff; font: inherit; font-size: 11px; cursor: pointer;
+  transition: background 110ms ease, color 110ms ease;
+}
+.call-btn:hover { background: rgba(255, 255, 255, 0.18); }
+.call-btn.is-on { background: #fff; border-color: #fff; color: #07241a; font-weight: 600; }
+.call-end { background: #d92b3a; border-color: #ff6b78; }
+.call-end:hover { background: #ea3a49; }
+
+@media (max-width: 720px) {
+  .phone-body { padding: 12px 12px 16px; }
+  .phone-call { padding: 20px 16px 18px; }
+  .call-avatar { width: 72px; height: 72px; font-size: 24px; }
+  .call-btn { width: 60px; height: 60px; }
+}

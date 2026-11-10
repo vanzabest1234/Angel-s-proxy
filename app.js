@@ -171,7 +171,15 @@ function sendToBackground() {
 }
 
 desktopEl.addEventListener('click', (event) => {
-  if (event.target.closest('.window, .taskbar, .start-menu, .desktop-icons')) return;
+  // Use the dispatch path too: an app may re-render the clicked control, detaching
+  // it from the document before the click reaches the desktop.
+  const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+  const inShell = path.some((node) => node instanceof Element &&
+    (node.classList.contains('window') ||
+     node.classList.contains('taskbar') ||
+     node.classList.contains('start-menu') ||
+     node.classList.contains('desktop-icons')));
+  if (inShell || event.target.closest('.window, .taskbar, .start-menu, .desktop-icons')) return;
   sendToBackground();
 });
 
