@@ -2,6 +2,8 @@
    Numbers, contacts and recents stay in this browser. */
 
 import { playTone } from './dtmf.js';
+import { dialReal, hangUp, muteReal, voiceStatus } from './voice.js';
+import { openVoicePanel } from './voice-panel.js';
 
 const CONTACTS_KEY = 'angel.phone.contacts';
 const RECENTS_KEY = 'angel.phone.recents';
@@ -81,6 +83,7 @@ export function renderPhone(body) {
     recents: read(RECENTS_KEY, []),
     call: null,
     tone: true,
+    voice: { configured: false, from: '' },
   };
 
   let ringTimer = null;
@@ -101,12 +104,16 @@ export function renderPhone(body) {
     }
     callEl.hidden = false;
     callEl.innerHTML = `
-      <p class="call-kicker">${call.connected ? 'In call' : 'Calling…'}</p>
+      <p class="call-kicker">${call.connected
+        ? (call.mode === 'live' ? 'In call · live' : 'In call')
+        : call.error ? 'Call failed' : call.mode === 'live' ? 'Connecting…' : 'Calling…'}</p>
       <div class="call-who">
         <span class="call-avatar">${esc(initials(call.name || format(call.number)))}</span>
         <b class="call-name">${esc(call.name || format(call.number))}</b>
         <span class="call-num">${call.name ? esc(call.shown || format(call.number)) : call.connected ? 'Connected' : 'Ringing…'}</span>
         <span class="call-time" data-call-time>${call.connected ? clock(call.secs) : ''}</span>
+        ${call.error ? `<span class="call-error">${esc(call.error)}</span>` : ''}
+        ${call.mode === 'live' && !call.error ? '<span class="call-live">Real call · WebRTC</span>' : ''}
       </div>
       <button class="call-more${call.keypad ? ' is-on' : ''}" data-call-keypad>${call.keypad ? 'Hide keypad' : 'Keypad'}</button>
       ${call.keypad ? `
@@ -136,15 +143,30 @@ export function renderPhone(body) {
         if (!state.call) return;
         const key = btn.dataset.callToggle;
         state.call[key] = !state.call[key];
+        if (key === 'muted') muteReal(state.call.muted);
         drawCall();
       });
     });
     callEl.querySelector('[data-call-end]').addEventListener('click', endCall);
   }
 
-  function startCall(raw) {
+  function tick() {
+    clearInterval(tickTimer);
+    tickTimer = setInterval(() => {
+      if (!state.call || !state.call.connected) return;
+      state.call.secs += 1;
+      const time = callEl.querySelector('[data-call-time]');
+      if (time) time.textContent = clock(state.call.secs);
+    }, 1000);
+  }
+
+  async function startCall(raw) {
     const number = digits(raw);
     if (!number) return;
+    clearTimeout(ringTimer);
+    clearInterval(tickTimer);
+    hangUp();
+
     state.call = {
       number,
       name: nameOf(number),
@@ -155,28 +177,48 @@ export function renderPhone(body) {
       muted: false,
       speaker: false,
       keypad: false,
+      mode: state.voice.configured ? 'live' : 'demo',
+      error: '',
     };
     drawCall();
 
-    clearTimeout(ringTimer);
-    clearInterval(tickTimer);
-    ringTimer = setTimeout(() => {
+    if (!state.voice.configured) {
+      ringTimer = setTimeout(() => {
+        if (!state.call) return;
+        state.call.connected = true;
+        drawCall();
+        tick();
+      }, 1600);
+      return;
+    }
+
+    try {
+      await dialReal(number, {
+        connected: () => {
+          if (!state.call) return;
+          state.call.connected = true;
+          drawCall();
+          tick();
+        },
+        ended: () => endCall(),
+        failed: (message) => {
+          if (!state.call) return;
+          state.call.error = message || 'The call could not connect.';
+          drawCall();
+        },
+      });
+    } catch (err) {
       if (!state.call) return;
-      state.call.connected = true;
+      state.call.error = (err && err.message) || 'Real calling is unavailable right now.';
       drawCall();
-    }, 1600);
-    tickTimer = setInterval(() => {
-      if (!state.call || !state.call.connected) return;
-      state.call.secs += 1;
-      const time = callEl.querySelector('[data-call-time]');
-      if (time) time.textContent = clock(state.call.secs);
-    }, 1000);
+    }
   }
 
   function endCall() {
     const call = state.call;
     if (!call) return;
     state.call = null;
+    hangUp();
     clearTimeout(ringTimer);
     clearInterval(tickTimer);
     ringTimer = null;
@@ -236,14 +278,18 @@ export function renderPhone(body) {
     view.innerHTML = `
       <div class="pad">
         <div class="pad-top">
-          <span class="pad-brand">Angel&rsquo;s Line</span>
+          <button class="pad-line${state.voice.configured ? ' is-live' : ''}" data-line>${state.voice.configured
+            ? `● Live${state.voice.from ? ` · ${esc(state.voice.from)}` : ''}`
+            : 'Connect line'}</button>
           <button class="pad-tone${state.tone ? '' : ' is-off'}" data-tone aria-pressed="${state.tone}" aria-label="Keypad tones">${state.tone ? '♪' : '♪̸'}</button>
         </div>
         <div class="pad-display${state.dial ? '' : ' is-empty'}">
           ${who ? `<span class="pad-who">${esc(who.name)}</span>` : ''}
           <span data-number>${state.dial ? esc(number) : 'Enter a number'}</span>
         </div>
-        <p class="pad-hint" data-hint>${state.tone ? 'Real DTMF tones · hold 0 for +' : 'Keypad tones muted · hold 0 for +'}</p>
+        <p class="pad-hint" data-hint>${state.voice.configured
+          ? 'Live line — every call rings a real phone'
+          : state.tone ? 'Real DTMF tones · hold 0 for +' : 'Keypad tones muted · hold 0 for +'}</p>
         <div class="pad-grid">
           ${KEYS.map(([key, letters]) => `
             <button class="pad-key" data-key="${key}">
@@ -317,6 +363,23 @@ export function renderPhone(body) {
       drawPad();
     });
     view.querySelector('[data-call-start]').addEventListener('click', placeCall);
+
+    view.querySelector('[data-line]').addEventListener('click', () => {
+      openVoicePanel(callEl, {
+        voice: state.voice,
+        onClose: () => {
+          callEl.hidden = true;
+          callEl.innerHTML = '';
+        },
+        onSaved: (status) => {
+          state.voice = status;
+          callEl.hidden = true;
+          callEl.className = 'phone-call';
+          callEl.innerHTML = '';
+          draw();
+        },
+      });
+    });
 
     view.querySelector('[data-tone]').addEventListener('click', () => {
       state.tone = !state.tone;
@@ -457,6 +520,11 @@ export function renderPhone(body) {
   });
 
   draw();
+
+  voiceStatus().then((status) => {
+    state.voice = status;
+    if (!state.call) draw();
+  });
 }
 
 export const phone = {

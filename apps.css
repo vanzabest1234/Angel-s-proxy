@@ -370,7 +370,14 @@
   display: flex; align-items: center; justify-content: space-between;
   width: min(300px, 100%); height: 22px;
 }
-.pad-brand { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #a2a8b6; }
+.pad-line {
+  max-width: 210px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 3px 8px; border: 1px dashed #d3d8e2; border-radius: 999px;
+  background: #fff; font: inherit; font-size: 10px; letter-spacing: 0.06em;
+  color: #6b7280; cursor: pointer;
+}
+.pad-line:hover { border-color: #12a15f; color: #0b6b3f; }
+.pad-line.is-live { border-style: solid; border-color: #12a15f; background: #f0fdf6; color: #0b6b3f; font-weight: 600; }
 .pad-tone {
   width: 24px; height: 22px; border: 0; border-radius: 6px;
   background: transparent; color: #4f8f70;
@@ -447,6 +454,60 @@
 .row-x:hover { background: #fdebec; color: #b02a37; }
 .phone-empty { margin: 8px 0 0; font-size: 12.5px; color: #8a90a0; }
 
+/* connect-line panel */
+.phone-call.phone-setup {
+  align-items: stretch; justify-content: flex-start; gap: 9px;
+  overflow: auto; padding: 18px 18px 22px;
+  background: #f6f7fb; color: #1f2329;
+}
+.setup-head { position: relative; display: grid; gap: 3px; }
+.setup-x {
+  position: absolute; top: -6px; right: -6px;
+  width: 24px; height: 24px; border: 0; border-radius: 50%;
+  background: transparent; color: #9aa0ae; font: inherit; font-size: 12px; cursor: pointer;
+}
+.setup-x:hover { background: #eef1f7; color: #1f2329; }
+.setup-kicker { margin: 0; font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; color: #12a15f; }
+.setup-title { margin: 0; font-size: 15px; }
+.setup-copy { margin: 0; font-size: 11.5px; line-height: 1.45; color: #6b7280; }
+.setup-steps { margin: 0; padding-left: 16px; display: grid; gap: 3px; font-size: 11.5px; line-height: 1.4; color: #4b5563; }
+.setup-hook {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 8px; background: #fff; border: 1px solid #e3e6ec; border-radius: 8px;
+}
+.setup-hook code { flex: 1; min-width: 0; font-size: 10px; color: #374151; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.setup-copy-btn {
+  border: 0; border-radius: 6px; padding: 4px 8px;
+  background: #eef1f7; font: inherit; font-size: 10.5px; color: #374151; cursor: pointer;
+}
+.setup-copy-btn:hover { background: #e3e8f1; }
+.setup-form { display: grid; gap: 7px; }
+.setup-field { display: grid; gap: 2px; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #8a90a0; }
+.setup-field input {
+  height: 30px; padding: 0 9px;
+  border: 1px solid #dcdfe6; border-radius: 7px; background: #fff;
+  font: inherit; font-size: 12px; letter-spacing: normal; text-transform: none; color: #1f2329;
+}
+.setup-field input:focus { outline: 2px solid rgba(18, 161, 95, 0.35); outline-offset: -1px; }
+.setup-msg { margin: 0; font-size: 11px; line-height: 1.35; color: #b02a37; }
+.setup-actions { display: flex; gap: 8px; }
+.setup-go {
+  height: 32px; padding: 0 16px; border: 0; border-radius: 7px;
+  background: #12a15f; color: #fff; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.setup-go:hover { filter: brightness(1.06); }
+.setup-go:disabled { opacity: 0.6; cursor: default; }
+.setup-cancel {
+  height: 32px; padding: 0 13px; border: 1px solid #dcdfe6; border-radius: 7px;
+  background: #fff; font: inherit; font-size: 12.5px; color: #4b5563; cursor: pointer;
+}
+.setup-cancel:hover { background: #eef1f7; }
+.setup-drop {
+  justify-self: start; margin-top: 2px; padding: 2px; border: 0; background: transparent;
+  font: inherit; font-size: 11px; color: #b02a37; cursor: pointer;
+}
+.setup-drop:hover { text-decoration: underline; }
+
 /* in-call screen */
 .phone-call {
   position: absolute; inset: 0;
@@ -467,6 +528,8 @@
 }
 .call-name { margin-top: 4px; font-size: 20px; }
 .call-num { font-size: 12.5px; color: rgba(255, 255, 255, 0.62); }
+.call-error { max-width: 230px; font-size: 11.5px; line-height: 1.35; text-align: center; color: #ffc2c8; }
+.call-live { font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(143, 224, 180, 0.85); }
 .call-time { min-height: 18px; font-size: 12.5px; letter-spacing: 0.18em; color: #8fe0b4; font-variant-numeric: tabular-nums; }
 
 /* in-call keypad */
