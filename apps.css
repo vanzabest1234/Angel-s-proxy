@@ -577,3 +577,51 @@
   .call-avatar { width: 72px; height: 72px; font-size: 24px; }
   .call-btn { width: 60px; height: 60px; }
 }
+
+/* ---------- Spotify ---------- */
+.sp-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  background: #0b0608;
+  border-bottom: 1px solid rgba(29, 185, 84, 0.35);
+}
+.sp-dot {
+  flex: 0 0 auto;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(150deg, #6ef2a3, #1db954 58%, #0a5c2c);
+  box-shadow: 0 6px 16px rgba(29, 185, 84, 0.3);
+}
+.sp-input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(29, 185, 84, 0.4);
+  background: #140b0e;
+  color: #f2fbf5;
+  font-size: 12.5px;
+}
+.sp-input::placeholder { color: #8c9c92; }
+.sp-input:focus { outline: none; border-color: #1db954; box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2); }
+.sp-input.is-bad { border-color: #ff5a66; box-shadow: 0 0 0 2px rgba(255, 90, 102, 0.2); }
+.sp-input.is-bad::placeholder { color: #ff9aa2; }
+.sp-go {
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(150deg, #4ce38a, #1db954 60%, #0f7a3d);
+  color: #05230f;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sp-go:hover { filter: brightness(1.08); }
+.sp-frame { background: #121212; }

@@ -35,6 +35,11 @@
     linear-gradient(150deg, #c084fc, #8b2bd6 58%, #3b0a5e);
 }
 
+.tile-spotify {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='9.6' fill='white'/><g fill='none' stroke='%230f7a3d' stroke-linecap='round' stroke-width='1.7'><path d='M7.5 9.5c3.2-1 6.9-.5 9.4 1'/><path d='M8.2 12.4c2.6-.8 5.6-.4 7.7.9'/><path d='M8.8 15.1c2-.6 4.3-.3 6 .8'/></g></svg>"),
+    linear-gradient(150deg, #6ef2a3, #1db954 58%, #0a5c2c);
+}
+
 .tile-store {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6.2 8.4h11.6l-1 10.4a1.6 1.6 0 0 1-1.6 1.4H8.8a1.6 1.6 0 0 1-1.6-1.4L6.2 8.4Z' fill='white'/><path d='M9.2 8.4a2.8 2.8 0 0 1 5.6 0' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9.4' cy='12.4' r='1' fill='%232b7bff'/><circle cx='14.6' cy='12.4' r='1' fill='%232b7bff'/></svg>"),
     linear-gradient(150deg, #7ad4ff, #2b7bff 65%, #1a3fb8);
