@@ -6,6 +6,7 @@ import { mzk } from './apps/mzk.js';
 import { mygames } from './apps/mygames.js';
 import { phone } from './apps/phone.js';
 import { spotify } from './apps/spotify.js';
+import { github } from './apps/github.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const attr = (s) => esc(s).replace(/"/g, '&quot;');
@@ -385,6 +386,7 @@ export const apps = {
   mygames,
   mzk,
   spotify,
+  github,
   notes: {
     name: 'Notes',
     title: 'Notes',

@@ -625,3 +625,68 @@
 }
 .sp-go:hover { filter: brightness(1.08); }
 .sp-frame { background: #121212; }
+
+/* ---------- GitHub ---------- */
+.gh-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  background: #0b0608;
+  border-bottom: 1px solid rgba(255, 59, 77, 0.35);
+}
+.gh-dot {
+  flex: 0 0 auto;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(150deg, #5a6779, #2f3843 58%, #11151a);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+.gh-input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: #140b0e;
+  color: #f7ecee;
+  font-size: 12.5px;
+}
+.gh-input::placeholder { color: #97888c; }
+.gh-input:focus { outline: none; border-color: #8b98ab; box-shadow: 0 0 0 2px rgba(139, 152, 171, 0.2); }
+.gh-input.is-bad { border-color: #ff5a66; box-shadow: 0 0 0 2px rgba(255, 90, 102, 0.2); }
+.gh-input.is-bad::placeholder { color: #ff9aa2; }
+.gh-go {
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(150deg, #6f7d90, #38414d);
+  color: #fff;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gh-go:hover { filter: brightness(1.12); }
+.gh-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.gh-frame { background: #fff; }
+.gh-note {
+  margin: auto;
+  padding: 24px;
+  max-width: 380px;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #9d8085;
+}
+.gh-body { background: #0b0608; }
+.gh-frame[hidden] { display: none; }
