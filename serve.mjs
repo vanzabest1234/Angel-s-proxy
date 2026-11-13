@@ -1,7 +1,6 @@
 import { createServer } from 'node:http';
-import { createHmac } from 'node:crypto';
-import { mkdir, readFile, readdir, stat, unlink, writeFile } from 'node:fs/promises';
-import { dirname, extname, join, normalize, relative } from 'node:path';
+import { readFile, readdir, stat } from 'node:fs/promises';
+import { extname, join, normalize, relative } from 'node:path';
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = process.env.APP_ROOT || '/workspace';
@@ -418,71 +417,6 @@ async function handleAi(req, res) {
   }
 }
 
-/* ---------- real calls (Twilio Voice over WebRTC) ---------- */
-const VOICE_FILE = process.env.VOICE_CONFIG_FILE || '/run/base44/phone-line.json';
-
-const readBody = async (req, limit = 20000) => {
-  let raw = '';
-  for await (const chunk of req) {
-    raw += chunk;
-    if (raw.length > limit) break;
-  }
-  return raw;
-};
-
-async function voiceConfig() {
-  const env = {
-    accountSid: (process.env.TWILIO_ACCOUNT_SID || '').trim(),
-    keySid: (process.env.TWILIO_API_KEY_SID || '').trim(),
-    keySecret: (process.env.TWILIO_API_KEY_SECRET || '').trim(),
-    appSid: (process.env.TWILIO_TWIML_APP_SID || '').trim(),
-    from: (process.env.TWILIO_CALLER_ID || '').trim(),
-  };
-  if (env.accountSid && env.keySid && env.keySecret && env.appSid && env.from) return env;
-  try {
-    const saved = JSON.parse(await readFile(VOICE_FILE, 'utf8'));
-    return { ...env, ...saved };
-  } catch {
-    return env;
-  }
-}
-
-const voiceReady = (c) => Boolean(c.accountSid && c.keySid && c.keySecret && c.appSid && c.from);
-
-function voiceToken(identity, c) {
-  const now = Math.floor(Date.now() / 1000);
-  const part = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
-  const header = part({ typ: 'JWT', alg: 'HS256', cty: 'twilio-fpa;v=1' });
-  const payload = part({
-    jti: `${c.keySid}-${Date.now()}`,
-    iss: c.keySid,
-    sub: c.accountSid,
-    exp: now + 3600,
-    grants: { identity, voice: { outgoing: { application_sid: c.appSid } } },
-  });
-  const signature = createHmac('sha256', c.keySecret).update(`${header}.${payload}`).digest('base64url');
-  return `${header}.${payload}.${signature}`;
-}
-
-/* Only the shapes Twilio issues — keeps bad pastes out and never echoes a secret. */
-async function saveVoiceConfig(input) {
-  const clean = {
-    accountSid: String(input.accountSid || '').trim(),
-    keySid: String(input.keySid || '').trim(),
-    keySecret: String(input.keySecret || '').trim(),
-    appSid: String(input.appSid || '').trim(),
-    from: String(input.from || '').replace(/[^0-9+]/g, ''),
-  };
-  if (!/^AC[0-9a-fA-F]{32}$/.test(clean.accountSid)) throw new Error('The Account SID looks wrong — it starts with AC.');
-  if (!/^SK[0-9a-fA-F]{32}$/.test(clean.keySid)) throw new Error('The API Key SID looks wrong — it starts with SK.');
-  if (clean.keySecret.length < 16) throw new Error('The API Key Secret looks too short.');
-  if (!/^AP[0-9a-fA-F]{32}$/.test(clean.appSid)) throw new Error('The TwiML App SID looks wrong — it starts with AP.');
-  if (!/^\+[1-9]\d{6,15}$/.test(clean.from)) throw new Error('Your Twilio number needs the country code, like +15551234567.');
-  await mkdir(dirname(VOICE_FILE), { recursive: true });
-  await writeFile(VOICE_FILE, JSON.stringify(clean), { mode: 0o600 });
-  return clean;
-}
-
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const path = decodeURIComponent(url.pathname);
@@ -498,49 +432,6 @@ createServer(async (req, res) => {
 
   if (path === '/api/ai' && req.method === 'POST') {
     return handleAi(req, res);
-  }
-
-  if (path === '/api/voice/status') {
-    const line = await voiceConfig();
-    return json(res, 200, { configured: voiceReady(line), from: voiceReady(line) ? line.from : '' });
-  }
-
-  if (path === '/api/voice/config' && req.method === 'POST') {
-    try {
-      const saved = await saveVoiceConfig(JSON.parse((await readBody(req)) || '{}'));
-      return json(res, 200, { configured: true, from: saved.from });
-    } catch (err) {
-      return json(res, 400, { error: err.message || 'Could not save the line.' });
-    }
-  }
-
-  if (path === '/api/voice/config' && req.method === 'DELETE') {
-    try { await unlink(VOICE_FILE); } catch { /* nothing saved yet */ }
-    const line = await voiceConfig();
-    return json(res, 200, { configured: voiceReady(line), from: voiceReady(line) ? line.from : '' });
-  }
-
-  if (path === '/api/voice/token' && req.method === 'POST') {
-    const line = await voiceConfig();
-    if (!voiceReady(line)) return json(res, 501, { error: 'Real calling is not connected yet.' });
-    let identity = 'angel';
-    try {
-      const body = JSON.parse((await readBody(req)) || '{}');
-      identity = String(body.identity || 'angel').replace(/[^A-Za-z0-9:_-]/g, '').slice(0, 64) || 'angel';
-    } catch { /* keep the default identity */ }
-    return json(res, 200, { token: voiceToken(identity, line), from: line.from });
-  }
-
-  /* Twilio fetches this from the TwiML app when a call is placed: bridge it to the public network. */
-  if (path === '/api/voice/twiml' && req.method === 'POST') {
-    const line = await voiceConfig();
-    const form = new URLSearchParams(await readBody(req));
-    const to = String(form.get('To') || '').replace(/[^0-9+]/g, '');
-    res.writeHead(200, { 'content-type': 'text/xml; charset=utf-8', 'cache-control': 'no-store' });
-    if (!voiceReady(line) || !/^\+?[0-9]{6,16}$/.test(to)) {
-      return res.end('<?xml version="1.0" encoding="UTF-8"?><Response><Reject/></Response>');
-    }
-    return res.end(`<?xml version="1.0" encoding="UTF-8"?><Response><Dial callerId="${line.from}" answerOnBridge="true"><Number>${to}</Number></Dial></Response>`);
   }
 
   if (path === '/read') {
