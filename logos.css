@@ -10,16 +10,6 @@
     linear-gradient(150deg, #5aa9ff, #2f5bff 62%, #1b2f9e);
 }
 
-.tile-pc {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='2.5' y='4.5' width='19' height='12' rx='2' fill='white'/><rect x='4.8' y='6.8' width='14.4' height='7.4' rx='1' fill='%230f6fb0'/><rect x='9.5' y='17.4' width='5' height='2' fill='white'/><rect x='7' y='19' width='10' height='1.8' rx='0.9' fill='white'/></svg>"),
-    linear-gradient(150deg, #8fd8ff, #2aa7e8 60%, #0f6fb0);
-}
-
-.tile-edge {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M20.6 9.4A9 9 0 1 0 12 21' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round'/><path d='M4.2 13.4h9.6' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round'/></svg>"),
-    linear-gradient(150deg, #4fd1ff, #1288d8 58%, #0a5fa0);
-}
-
 .tile-angel {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><ellipse cx='12' cy='4.3' rx='3' ry='1.5' fill='none' stroke='%23ff3b4d' stroke-width='1.4'/><path d='M12 6.6 18 9v4.7c0 3.5-2.5 6.1-6 7.3-3.5-1.2-6-3.8-6-7.3V9z' fill='white'/><path d='M12 9.6v5.6M12 12.4h2.8' stroke='%23b30f1d' stroke-width='1.6' stroke-linecap='round'/></svg>"),
     linear-gradient(150deg, #ff5a66, #c00f1e 56%, #14060a);

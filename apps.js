@@ -61,45 +61,6 @@ async function renderReadme(body) {
   }
 }
 
-/* ---------- This PC ---------- */
-async function renderFiles(body) {
-  body.innerHTML = `
-    <div class="explorer">
-      <div class="explorer-head"><strong>Angel-s-proxy</strong><span>This PC › Repository</span></div>
-      <div class="explorer-list" data-list><p class="app-loading">Reading folder…</p></div>
-      <div class="explorer-preview" data-preview><p class="muted">Select a file to preview it.</p></div>
-    </div>`;
-
-  const list = body.querySelector('[data-list]');
-  const preview = body.querySelector('[data-preview]');
-
-  try {
-    const res = await fetch('/api/files', { cache: 'no-store' });
-    const items = await res.json();
-    list.innerHTML = items
-      .map((file) => `<button class="file" data-path="${attr(file.path)}">
-        <span class="file-icon ${file.dir ? 'is-dir' : 'is-doc'}" aria-hidden="true"></span>
-        <span class="file-name">${esc(file.path)}</span>
-        <span class="file-size">${file.dir ? '' : formatSize(file.size)}</span>
-      </button>`)
-      .join('');
-
-    list.querySelectorAll('.file').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const path = btn.dataset.path;
-        list.querySelectorAll('.file.is-selected').forEach((b) => b.classList.remove('is-selected'));
-        btn.classList.add('is-selected');
-        preview.innerHTML = '<p class="app-loading">Opening…</p>';
-        const file = await fetch(`/api/file?path=${encodeURIComponent(path)}`).then((r) => r.json());
-        preview.innerHTML = `<div class="preview-head">${esc(path)}</div>` +
-          (file.binary ? '<p class="muted">No preview for this file type.</p>' : `<pre class="preview-text">${esc(file.content)}</pre>`);
-      });
-    });
-  } catch {
-    list.innerHTML = '<p class="app-loading">Could not read the folder.</p>';
-  }
-}
-
 /* ---------- Angel's Proxy browser ---------- */
 const START_PAGE = 'https://lgcorew.s3-fips.us-east-1.amazonaws.com/index.html';
 const isAddress = (value) => /^https?:\/\//i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value);
