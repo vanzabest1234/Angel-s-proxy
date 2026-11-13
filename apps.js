@@ -62,7 +62,7 @@ async function renderReadme(body) {
 }
 
 /* ---------- Angel's Proxy browser ---------- */
-const START_PAGE = 'https://lgcorew.s3-fips.us-east-1.amazonaws.com/index.html';
+const START_PAGE = './browser-home.html';
 const isAddress = (value) => /^https?:\/\//i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value);
 const withScheme = (value) => (/^https?:\/\//i.test(value) ? value : `https://${value}`);
 const hostOf = (url) => {
