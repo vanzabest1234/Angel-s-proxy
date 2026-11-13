@@ -2,6 +2,7 @@
    Pages served by GitHub Pages allow framing, so the page loads for real. */
 
 const KEY = 'angel.github.page';
+const REFRESH_MS = 30000;
 
 export const toGithubUrl = (value) => {
   const raw = String(value || '').trim();
@@ -37,8 +38,17 @@ function renderGithub(body) {
   const frame = body.querySelector('.gh-frame');
   const note = body.querySelector('.gh-note');
 
+  let current = null;
+
+  const fresh = (url) => {
+    const next = new URL(url);
+    next.searchParams.set('_fresh', String(Date.now()));
+    return next.href;
+  };
+
   const show = (url) => {
-    frame.src = url;
+    current = url;
+    frame.src = fresh(url);
     frame.hidden = false;
     note.hidden = true;
     input.placeholder = url.replace(/^https?:\/\//, '');
@@ -46,6 +56,13 @@ function renderGithub(body) {
 
   const saved = toGithubUrl(localStorage.getItem(KEY));
   if (saved) show(saved);
+
+  /* Pick up new deploys without anyone reloading: refresh the page on its own. */
+  const timer = setInterval(() => {
+    if (!body.isConnected) return clearInterval(timer);
+    if (!current || frame.hidden || document.hidden) return;
+    frame.src = fresh(current);
+  }, REFRESH_MS);
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
