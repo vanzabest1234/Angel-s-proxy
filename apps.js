@@ -61,8 +61,8 @@ async function renderReadme(body) {
   }
 }
 
-/* ---------- Angel's Proxy browser ---------- */
-const START_PAGE = './browser-home.html';
+/* ---------- Flare's Proxy browser ---------- */
+const START_PAGE = 'https://flver.kdxcode.eu/';
 const isAddress = (value) => /^https?:\/\//i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value);
 const withScheme = (value) => (/^https?:\/\//i.test(value) ? value : `https://${value}`);
 const hostOf = (url) => {
@@ -80,7 +80,7 @@ function renderBrowser(body) {
         <div class="proxy-brand">
           <span class="proxy-mark" aria-hidden="true"></span>
           <div>
-            <h1 class="proxy-word">Ather's <span>Legendary Proxy</span></h1>
+            <h1 class="proxy-word">Flare's <span>Proxy</span></h1>
             <p class="proxy-sub">Your own black and red browser</p>
           </div>
         </div>
@@ -321,8 +321,8 @@ export const apps = {
     render: renderReadme,
   },
   browser: {
-    name: "Ather's Legendary Proxy",
-    title: "Ather's Legendary Proxy",
+    name: "Flare's proxy",
+    title: "Flare's proxy",
     tile: 'tile-angel',
     desc: 'Black and red browsing, in your own space.',
     maximized: true,
