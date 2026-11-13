@@ -4,7 +4,6 @@ import { weather } from './apps/weather.js';
 import { terminal } from './apps/terminal.js';
 import { mzk } from './apps/mzk.js';
 import { mygames } from './apps/mygames.js';
-import { github } from './apps/github.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const attr = (s) => esc(s).replace(/"/g, '&quot;');
@@ -344,7 +343,6 @@ export const apps = {
   },
   mygames,
   mzk,
-  github,
   notes: {
     name: 'Notes',
     title: 'Notes',
