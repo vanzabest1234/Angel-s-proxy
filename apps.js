@@ -2,7 +2,11 @@ import { calculator } from './apps/calculator.js';
 import { calendar } from './apps/calendar.js';
 import { weather } from './apps/weather.js';
 import { terminal } from './apps/terminal.js';
-import { ai } from './apps/ai.js';
+import { mzk } from './apps/mzk.js';
+import { mygames } from './apps/mygames.js';
+import { phone } from './apps/phone.js';
+import { spotify } from './apps/spotify.js';
+import { github } from './apps/github.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const attr = (s) => esc(s).replace(/"/g, '&quot;');
@@ -98,229 +102,136 @@ async function renderFiles(body) {
   }
 }
 
-/* ---------- Edge ---------- */
-const isUrl = (value) => !/\s/.test(value) && /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}([/?#].*)?$/i.test(value);
+/* ---------- Angel's Proxy browser ---------- */
+const START_PAGE = 'https://lgcorew.s3-fips.us-east-1.amazonaws.com/index.html';
+const isAddress = (value) => /^https?:\/\//i.test(value) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value);
 const withScheme = (value) => (/^https?:\/\//i.test(value) ? value : `https://${value}`);
-
-const flattenTopics = (topics) => topics.flatMap((topic) =>
-  topic.Topics ? flattenTopics(topic.Topics) : (topic.FirstURL && topic.Text ? [topic] : []));
+const hostOf = (url) => {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+};
 
 function renderBrowser(body) {
-  body.innerHTML = `
-    <div class="browser">
-      <div class="browser-bar">
-        <button class="nav" data-nav="back" aria-label="Back">&#8249;</button>
-        <button class="nav" data-nav="forward" aria-label="Forward">&#8250;</button>
-        <button class="nav" data-nav="reload" aria-label="Reload">&#8635;</button>
-        <form class="address" role="search">
-          <input class="url" aria-label="Search or enter an address" placeholder="Search DuckDuckGo or enter an address" autocomplete="off" spellcheck="false">
-        </form>
-      </div>
-      <div class="browser-page" data-page></div>
-    </div>`;
+  body.innerHTML = '<div class="proxy"><div class="proxy-view"></div></div>';
+  const view = body.querySelector('.proxy-view');
 
-  const page = body.querySelector('[data-page]');
-  const input = body.querySelector('.url');
-  let history = [{ type: 'home' }];
-  let index = 0;
-  let current = null;
-  let visitToken = 0;
-
-  const home = () => {
-    current = null;
-    input.value = '';
-    page.innerHTML = `
-      <div class="ddg-home">
-        <div class="ddg-word">DuckDuckGo</div>
-        <p class="ddg-tag">Search privately, right from Angel's Windows.</p>
-        <form class="ddg-form">
-          <input class="ddg-input" aria-label="Search DuckDuckGo" placeholder="Search DuckDuckGo">
-          <button class="ddg-go" type="submit">Search</button>
-        </form>
-        <div class="ddg-chips">
-          ${['Windows 11', 'DuckDuckGo privacy', 'web browsers'].map((q) => `<button class="chip" data-q="${attr(q)}">${esc(q)}</button>`).join('')}
+  const home = (value = '') => {
+    view.className = 'proxy-view';
+    view.innerHTML = `
+      <div class="proxy-home">
+        <div class="proxy-brand">
+          <span class="proxy-mark" aria-hidden="true"></span>
+          <div>
+            <h1 class="proxy-word">Ather's <span>Legendary Proxy</span></h1>
+            <p class="proxy-sub">Your own black and red browser</p>
+          </div>
         </div>
+        <form class="proxy-search" role="search">
+          <input class="proxy-input" type="text" value="${attr(value)}" placeholder="Search DuckDuckGo or enter a URL"
+            aria-label="Search DuckDuckGo or enter a URL" autocomplete="off" spellcheck="false">
+          <button class="proxy-go" type="submit" aria-label="Search">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.4" fill="none" stroke="currentColor" stroke-width="1.9"/><line x1="12.8" y1="12.8" x2="17" y2="17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+          </button>
+        </form>
+        <p class="proxy-note">Searches go to DuckDuckGo</p>
       </div>`;
 
-    page.querySelector('.ddg-form').addEventListener('submit', (event) => {
+    const form = view.querySelector('.proxy-search');
+    const input = view.querySelector('.proxy-input');
+    form.addEventListener('submit', (event) => {
       event.preventDefault();
-      go(page.querySelector('.ddg-input').value);
+      const query = input.value.trim();
+      if (!query) return input.focus();
+      return isAddress(query) ? frame(withScheme(query)) : results(query);
     });
-    page.querySelectorAll('.chip').forEach((chip) => {
-      chip.addEventListener('click', () => go(chip.dataset.q));
-    });
+    input.focus();
+    input.select();
   };
 
-  const search = async (query) => {
-    current = null;
-    input.value = query;
-    page.innerHTML = `<div class="ddg-results"><p class="app-loading">Searching DuckDuckGo for “${esc(query)}”…</p></div>`;
+  const shell = (label, loading) => {
+    view.className = 'proxy-view is-doc';
+    view.innerHTML = `
+      <div class="proxy-bar">
+        <button class="proxy-back" type="button">← Home</button>
+        <span class="proxy-crumb">${esc(label)}</span>
+      </div>
+      <div class="proxy-doc"><p class="proxy-loading">${esc(loading)}</p></div>`;
+    view.querySelector('.proxy-back').addEventListener('click', (event) => {
+      event.stopPropagation();
+      home();
+    });
+    return view.querySelector('.proxy-doc');
+  };
+
+  const results = async (query) => {
+    const doc = shell(`DuckDuckGo · ${query}`, 'Searching DuckDuckGo…');
     try {
-      const res = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`);
+      const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
       const data = await res.json();
-      const topics = flattenTopics(data.RelatedTopics || []).slice(0, 8);
-      const allResults = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
-
-      const answer = data.AbstractText
-        ? `<article class="ddg-card">
-             <h2>${esc(data.Heading || query)}</h2>
-             <p>${esc(data.AbstractText)}</p>
-             ${data.AbstractURL ? `<a href="${attr(data.AbstractURL)}" target="_blank" rel="noopener noreferrer">${esc(data.AbstractSource || 'Read more')} &#8599;</a>` : ''}
-           </article>`
-        : '';
-
-      const related = topics
-        .map((topic) => `<button class="ddg-result" data-title="${attr(topic.Text.split(' - ')[0])}">
-            <strong>${esc(topic.Text.split(' - ')[0])}</strong>
-            <span>${esc(topic.Text.split(' - ').slice(1).join(' - ').slice(0, 110))}</span>
-          </button>`)
-        .join('');
-
-      page.innerHTML = `<div class="ddg-results">
-        <div class="ddg-results-head">
-          <h2>${esc(query)}</h2>
-          <a class="ddg-all" href="${attr(allResults)}" target="_blank" rel="noopener noreferrer">All results on DuckDuckGo &#8599;</a>
-        </div>
-        ${answer}
-        ${related ? `<h3 class="ddg-sub">Related</h3><div class="ddg-list">${related}</div>` : ''}
-        ${!answer && !related ? '<p class="muted">No instant answer for that one — open the full results on DuckDuckGo.</p>' : ''}
-      </div>`;
-
-      page.querySelectorAll('.ddg-result[data-title]').forEach((btn) => {
-        btn.addEventListener('click', () => push({ type: 'search', query: btn.dataset.title }));
+      if (!data.results || !data.results.length) {
+        doc.innerHTML = `<p class="proxy-loading">${esc(data.note || 'No results from DuckDuckGo.')}</p>`;
+        return;
+      }
+      doc.innerHTML = `<ol class="proxy-results">${data.results.map((r) => `
+        <li class="proxy-result">
+          <button class="proxy-result-title" type="button" data-href="${attr(r.url)}">${esc(r.title)}</button>
+          <span class="proxy-result-host">${esc(hostOf(r.url))}</span>
+          ${r.snippet ? `<p class="proxy-result-text">${esc(r.snippet)}</p>` : ''}
+        </li>`).join('')}</ol>`;
+      doc.querySelectorAll('.proxy-result-title').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+          frame(button.dataset.href);
+        });
       });
     } catch {
-      page.innerHTML = `<div class="ddg-results">
-        <p>DuckDuckGo didn't answer inside the app.</p>
-        <a class="ddg-all" href="https://duckduckgo.com/?q=${encodeURIComponent(query)}" target="_blank" rel="noopener noreferrer">Open the search on DuckDuckGo &#8599;</a>
-      </div>`;
+      doc.innerHTML = '<p class="proxy-loading">DuckDuckGo did not answer just now.</p>';
     }
   };
 
-  const readerView = (data) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'reader';
-
-    const head = document.createElement('header');
-    head.className = 'reader-head';
-    const title = document.createElement('h1');
-    title.textContent = data.title || data.url;
-    const meta = document.createElement('p');
-    meta.className = 'reader-meta';
-    meta.textContent = data.site ? `${data.site} · ` : '';
-    const real = document.createElement('a');
-    real.href = data.url;
-    real.target = '_blank';
-    real.rel = 'noopener noreferrer';
-    real.textContent = 'Open the real page ↗';
-    meta.append(real);
-    head.append(title, meta);
-    wrap.append(head);
-
-    const article = document.createElement('article');
-    article.className = 'reader-body';
-    let list = null;
-
-    for (const block of data.blocks || []) {
-      if (block.t === 'li') {
-        if (!list) { list = document.createElement('ul'); article.append(list); }
-        const item = document.createElement('li');
-        item.textContent = block.text;
-        list.append(item);
-        continue;
-      }
-      list = null;
-
-      if (block.t === 'img') {
-        const figure = document.createElement('figure');
-        const img = document.createElement('img');
-        img.loading = 'lazy';
-        img.alt = block.alt || '';
-        img.src = `/img?url=${encodeURIComponent(block.src)}&ref=${encodeURIComponent(data.url)}`;
-        img.addEventListener('error', () => figure.remove());
-        figure.append(img);
-        if (block.alt) {
-          const caption = document.createElement('figcaption');
-          caption.textContent = block.alt;
-          figure.append(caption);
-        }
-        article.append(figure);
-        continue;
-      }
-
-      const tag = block.t === 'h' ? (block.level >= 3 ? 'h3' : 'h2')
-        : block.t === 'q' ? 'blockquote'
-          : block.t === 'pre' ? 'pre' : 'p';
-      const node = document.createElement(tag);
-      node.textContent = block.text;
-      article.append(node);
-    }
-
-    if (!article.childElementCount) {
-      const empty = document.createElement('p');
-      empty.className = 'muted';
-      empty.textContent = data.note || 'This page has no readable text — open the real page to see it.';
-      article.append(empty);
-    }
-
-    wrap.append(article);
-    return wrap;
+  const frame = (url, direct = false) => {
+    view.className = 'proxy-view is-frame';
+    const src = direct ? url : `/frame?url=${encodeURIComponent(url)}`;
+    view.innerHTML = `
+      <iframe class="proxy-frame" title="${attr(hostOf(url))}" src="${attr(src)}"
+        referrerpolicy="no-referrer"></iframe>`;
   };
 
-  const visit = async (url) => {
-    current = url;
-    input.value = url;
-    const token = ++visitToken;
-    page.innerHTML = `<div class="reader"><p class="app-loading">Opening ${esc(url.replace(/^https?:\/\//, ''))}…</p></div>`;
-
-    let data;
-    try {
-      const res = await fetch(`/read?url=${encodeURIComponent(url)}`, { cache: 'no-store' });
-      data = await res.json();
-    } catch {
-      data = { url, site: '', title: url.replace(/^https?:\/\//, ''), blocks: [], note: "Angel's proxy could not reach that address." };
-    }
-
-    if (token !== visitToken) return;
-    page.innerHTML = '';
-    page.append(readerView(data));
-  };
-
-  const show = (entry) => {
-    if (entry.type === 'search') search(entry.query);
-    else if (entry.type === 'url') visit(entry.url);
-    else home();
-  };
-
-  const push = (entry) => {
-    history = history.slice(0, index + 1);
-    history.push(entry);
-    index = history.length - 1;
-    show(entry);
-  };
-
-  const go = (raw) => {
-    const value = String(raw || '').trim();
-    if (!value) return;
-    if (isUrl(value)) push({ type: 'url', url: withScheme(value) });
-    else push({ type: 'search', query: value });
-  };
-
-  body.querySelector('.address').addEventListener('submit', (event) => {
-    event.preventDefault();
-    go(input.value);
+  window.addEventListener('message', (event) => {
+    if (!view.isConnected) return;
+    const data = event.data;
+    if (!data || data.source !== 'angels-proxy' || data.type !== 'navigate') return;
+    const frameEl = view.querySelector('.proxy-frame');
+    if (!frameEl || frameEl.contentWindow !== event.source) return;
+    if (typeof data.url === 'string' && /^https?:\/\//i.test(data.url)) frame(data.url);
   });
 
-  body.querySelectorAll('[data-nav]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.nav;
-      if (action === 'back' && index > 0) { index -= 1; show(history[index]); }
-      if (action === 'forward' && index < history.length - 1) { index += 1; show(history[index]); }
-      if (action === 'reload') show(history[index]);
-    });
-  });
+  frame(START_PAGE, true);
+}
 
-  home();
+/* ---------- Movies ---------- */
+const MOVIES_PAGE = 'https://thd.sagarshrestha1999.com.np/movies';
+
+function renderMovies(body) {
+  body.innerHTML = `
+    <div class="proxy">
+      <div class="proxy-view is-frame">
+        <iframe class="proxy-frame" title="Movies" src="${attr(MOVIES_PAGE)}"
+          referrerpolicy="no-referrer"></iframe>
+      </div>
+    </div>`;
+}
+
+/* ---------- Games ---------- */
+const GAMES_PAGE = 'https://unpkg.com/hilollol@1.0.0/index.html';
+
+function renderGames(body) {
+  body.innerHTML = `
+    <div class="proxy">
+      <div class="proxy-view is-frame">
+        <iframe class="proxy-frame" title="Games" src="${attr(GAMES_PAGE)}"
+          referrerpolicy="no-referrer"></iframe>
+      </div>
+    </div>`;
 }
 
 /* ---------- Settings ---------- */
@@ -450,20 +361,32 @@ export const apps = {
     desc: 'The repository README, rendered as a document.',
     render: renderReadme,
   },
-  files: {
-    name: 'This PC',
-    title: 'This PC — Angel-s-proxy',
-    tile: 'tile-pc',
-    desc: 'Browse the repository files and preview them.',
-    render: renderFiles,
-  },
   browser: {
-    name: 'Edge',
-    title: 'Edge — DuckDuckGo',
-    tile: 'tile-edge',
-    desc: 'Search DuckDuckGo privately or open an address.',
+    name: "Ather's Legendary Proxy",
+    title: "Ather's Legendary Proxy",
+    tile: 'tile-angel',
+    desc: 'Black and red browsing, in your own space.',
+    maximized: true,
     render: renderBrowser,
   },
+  games: {
+    name: 'Games',
+    title: 'Games',
+    tile: 'tile-games',
+    desc: 'Play in your own window.',
+    render: renderGames,
+  },
+  movies: {
+    name: 'Movies',
+    title: 'Movies',
+    tile: 'tile-movies',
+    desc: 'Stream movies in your own window.',
+    render: renderMovies,
+  },
+  mygames,
+  mzk,
+  spotify,
+  github,
   notes: {
     name: 'Notes',
     title: 'Notes',
@@ -481,8 +404,8 @@ export const apps = {
   calculator,
   calendar,
   weather,
+  phone,
   terminal,
-  ai,
   store: {
     name: 'Store',
     title: 'Store',

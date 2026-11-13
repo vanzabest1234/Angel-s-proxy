@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
-import { readFile, readdir, stat } from 'node:fs/promises';
-import { extname, join, normalize, relative } from 'node:path';
+import { createHmac } from 'node:crypto';
+import { mkdir, readFile, readdir, stat, unlink, writeFile } from 'node:fs/promises';
+import { dirname, extname, join, normalize, relative } from 'node:path';
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = process.env.APP_ROOT || '/workspace';
@@ -33,6 +34,42 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 const PRIVATE = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|0\.|\[::1\])/i;
 
 const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/* Injected into framed pages so clicks and GET forms stay inside the frame view. */
+const BRIDGE = `<script>(function(){
+  function send(url){ try { parent.postMessage({ source: "angels-proxy", type: "navigate", url: url }, "*"); } catch (e) {} }
+  function web(url){ return url && (url.protocol === "http:" || url.protocol === "https:"); }
+  document.addEventListener("click", function(event){
+    var a = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+    if (!a || a.target === "_blank" || a.hasAttribute("download")) return;
+    var raw = a.getAttribute("href") || "";
+    if (!raw || raw.charAt(0) === "#") return;
+    var url;
+    try { url = new URL(raw, document.baseURI); } catch (e) { return; }
+    if (!web(url)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    send(url.href);
+  }, true);
+  document.addEventListener("submit", function(event){
+    var form = event.target;
+    if (!form || String(form.method || "get").toLowerCase() !== "get") return;
+    var url;
+    try { url = new URL(form.getAttribute("action") || document.baseURI, document.baseURI); } catch (e) { return; }
+    new FormData(form).forEach(function(value, key){ if (typeof value === "string") url.searchParams.set(key, value); });
+    if (!web(url)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    send(url.href);
+  }, true);
+})();</script>`;
+
+const frameNote = (res, title, text) => {
+  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+  res.end(`<!doctype html><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+<style>html,body{height:100%;margin:0}body{display:grid;place-items:center;background:#0b0608;color:#e9dcdd;font:14px/1.6 system-ui,sans-serif;padding:24px;text-align:center}strong{display:block;margin-bottom:6px;color:#ff6b77;font-size:15px}</style>
+<div><strong>${escapeHtml(title)}</strong>${escapeHtml(text)}</div>`);
+};
 
 const decode = (s) => s
   .replace(/&nbsp;/g, ' ')
@@ -160,6 +197,113 @@ async function readPage(res, target) {
   }
 }
 
+async function framedPage(res, target) {
+  let dest;
+  try { dest = new URL(target); } catch { return frameNote(res, 'Bad address', 'That is not a web address.'); }
+  if (!/^https?:$/.test(dest.protocol) || PRIVATE.test(dest.hostname)) {
+    return frameNote(res, 'Blocked', 'That address cannot be opened here.');
+  }
+
+  try {
+    const upstream = await fetch(dest.href, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(20000),
+      headers: {
+        'user-agent': UA,
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.9',
+      },
+    });
+    const type = upstream.headers.get('content-type') || '';
+    if (!/text\/html|application\/xhtml/i.test(type)) {
+      return frameNote(res, dest.hostname, `That link is ${type.split(';')[0] || 'a file'}, not a web page.`);
+    }
+
+    let html = (await upstream.text()).slice(0, 900000);
+    html = html
+      .replace(/<meta[^>]+http-equiv=["']?content-security-policy["']?[^>]*>/gi, '')
+      .replace(/<base\b[^>]*>/gi, '');
+
+    const href = escapeHtml(upstream.url || dest.href);
+    const base = `<base href="${href}">`;
+    const head = html.match(/<head[^>]*>/i);
+    html = head ? html.replace(head[0], `${head[0]}${base}`) : `${base}${html}`;
+    html = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${BRIDGE}</body>`) : `${html}${BRIDGE}`;
+
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+    return res.end(html);
+  } catch {
+    return frameNote(res, dest.hostname, 'That site did not answer.');
+  }
+}
+
+const unwrapResultUrl = (raw) => {
+  try {
+    const parsed = new URL(raw);
+    if (/duckduckgo\.com$/.test(parsed.hostname) && parsed.searchParams.get('uddg')) return parsed.searchParams.get('uddg');
+    return raw;
+  } catch {
+    return raw;
+  }
+};
+
+function parseResults(markdown) {
+  const out = [];
+  let current = null;
+
+  for (const raw of markdown.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+
+    const heading = line.match(/^#{1,4}\s+\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/);
+    if (heading) {
+      const url = unwrapResultUrl(heading[2]);
+      let host = '';
+      try { host = new URL(url).hostname; } catch { host = ''; }
+      current = host && !/duckduckgo\.com$/.test(host) ? { title: heading[1].replace(/[*_`]/g, '').trim(), url, snippet: '' } : null;
+      if (current) out.push(current);
+      if (out.length >= 12) break;
+      continue;
+    }
+
+    if (!current) continue;
+    const text = line
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+      .replace(/\[\]\([^)]*\)/g, '')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/\*{2,}/g, ' ')
+      .replace(/[*_`#>]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!text || /^(previous|next|keyboard shortcut|feedback)/i.test(text)) continue;
+    if (!text.includes(' ') && /\./.test(text)) continue;
+    current.snippet = (current.snippet ? `${current.snippet} ` : '') + text;
+    if (current.snippet.length > 240) current.snippet = `${current.snippet.slice(0, 240).trim()}…`;
+  }
+
+  return out.filter((r) => r.title && r.url);
+}
+
+async function searchResults(res, query) {
+  const q = (query || '').trim();
+  if (!q) return json(res, 400, { error: 'bad query' });
+  const target = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`;
+
+  try {
+    const upstream = await fetch(`https://r.jina.ai/${target}`, {
+      headers: { accept: 'text/plain', 'user-agent': UA },
+      signal: AbortSignal.timeout(20000),
+    });
+    const text = (await upstream.text()).slice(0, 400000);
+    const results = parseResults(text);
+    return json(res, 200, results.length
+      ? { query: q, results }
+      : { query: q, results: [], note: 'DuckDuckGo did not answer just now — try again.' });
+  } catch {
+    return json(res, 200, { query: q, results: [], note: 'DuckDuckGo did not answer just now — try again.' });
+  }
+}
+
 async function image(res, target, referer) {
   let dest;
   try { dest = new URL(target); } catch { return json(res, 400, { error: 'bad url' }); }
@@ -274,6 +418,71 @@ async function handleAi(req, res) {
   }
 }
 
+/* ---------- real calls (Twilio Voice over WebRTC) ---------- */
+const VOICE_FILE = process.env.VOICE_CONFIG_FILE || '/run/base44/phone-line.json';
+
+const readBody = async (req, limit = 20000) => {
+  let raw = '';
+  for await (const chunk of req) {
+    raw += chunk;
+    if (raw.length > limit) break;
+  }
+  return raw;
+};
+
+async function voiceConfig() {
+  const env = {
+    accountSid: (process.env.TWILIO_ACCOUNT_SID || '').trim(),
+    keySid: (process.env.TWILIO_API_KEY_SID || '').trim(),
+    keySecret: (process.env.TWILIO_API_KEY_SECRET || '').trim(),
+    appSid: (process.env.TWILIO_TWIML_APP_SID || '').trim(),
+    from: (process.env.TWILIO_CALLER_ID || '').trim(),
+  };
+  if (env.accountSid && env.keySid && env.keySecret && env.appSid && env.from) return env;
+  try {
+    const saved = JSON.parse(await readFile(VOICE_FILE, 'utf8'));
+    return { ...env, ...saved };
+  } catch {
+    return env;
+  }
+}
+
+const voiceReady = (c) => Boolean(c.accountSid && c.keySid && c.keySecret && c.appSid && c.from);
+
+function voiceToken(identity, c) {
+  const now = Math.floor(Date.now() / 1000);
+  const part = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  const header = part({ typ: 'JWT', alg: 'HS256', cty: 'twilio-fpa;v=1' });
+  const payload = part({
+    jti: `${c.keySid}-${Date.now()}`,
+    iss: c.keySid,
+    sub: c.accountSid,
+    exp: now + 3600,
+    grants: { identity, voice: { outgoing: { application_sid: c.appSid } } },
+  });
+  const signature = createHmac('sha256', c.keySecret).update(`${header}.${payload}`).digest('base64url');
+  return `${header}.${payload}.${signature}`;
+}
+
+/* Only the shapes Twilio issues — keeps bad pastes out and never echoes a secret. */
+async function saveVoiceConfig(input) {
+  const clean = {
+    accountSid: String(input.accountSid || '').trim(),
+    keySid: String(input.keySid || '').trim(),
+    keySecret: String(input.keySecret || '').trim(),
+    appSid: String(input.appSid || '').trim(),
+    from: String(input.from || '').replace(/[^0-9+]/g, ''),
+  };
+  if (!/^AC[0-9a-fA-F]{32}$/.test(clean.accountSid)) throw new Error('The Account SID looks wrong — it starts with AC.');
+  if (!/^SK[0-9a-fA-F]{32}$/.test(clean.keySid)) throw new Error('The API Key SID looks wrong — it starts with SK.');
+  if (clean.keySecret.length < 16) throw new Error('The API Key Secret looks too short.');
+  if (!/^AP[0-9a-fA-F]{32}$/.test(clean.appSid)) throw new Error('The TwiML App SID looks wrong — it starts with AP.');
+  if (!/^\+[1-9]\d{6,15}$/.test(clean.from)) throw new Error('Your Twilio number needs the country code, like +15551234567.');
+  await mkdir(dirname(VOICE_FILE), { recursive: true });
+  await writeFile(VOICE_FILE, JSON.stringify(clean), { mode: 0o600 });
+  return clean;
+}
+
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const path = decodeURIComponent(url.pathname);
@@ -291,8 +500,59 @@ createServer(async (req, res) => {
     return handleAi(req, res);
   }
 
+  if (path === '/api/voice/status') {
+    const line = await voiceConfig();
+    return json(res, 200, { configured: voiceReady(line), from: voiceReady(line) ? line.from : '' });
+  }
+
+  if (path === '/api/voice/config' && req.method === 'POST') {
+    try {
+      const saved = await saveVoiceConfig(JSON.parse((await readBody(req)) || '{}'));
+      return json(res, 200, { configured: true, from: saved.from });
+    } catch (err) {
+      return json(res, 400, { error: err.message || 'Could not save the line.' });
+    }
+  }
+
+  if (path === '/api/voice/config' && req.method === 'DELETE') {
+    try { await unlink(VOICE_FILE); } catch { /* nothing saved yet */ }
+    const line = await voiceConfig();
+    return json(res, 200, { configured: voiceReady(line), from: voiceReady(line) ? line.from : '' });
+  }
+
+  if (path === '/api/voice/token' && req.method === 'POST') {
+    const line = await voiceConfig();
+    if (!voiceReady(line)) return json(res, 501, { error: 'Real calling is not connected yet.' });
+    let identity = 'angel';
+    try {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      identity = String(body.identity || 'angel').replace(/[^A-Za-z0-9:_-]/g, '').slice(0, 64) || 'angel';
+    } catch { /* keep the default identity */ }
+    return json(res, 200, { token: voiceToken(identity, line), from: line.from });
+  }
+
+  /* Twilio fetches this from the TwiML app when a call is placed: bridge it to the public network. */
+  if (path === '/api/voice/twiml' && req.method === 'POST') {
+    const line = await voiceConfig();
+    const form = new URLSearchParams(await readBody(req));
+    const to = String(form.get('To') || '').replace(/[^0-9+]/g, '');
+    res.writeHead(200, { 'content-type': 'text/xml; charset=utf-8', 'cache-control': 'no-store' });
+    if (!voiceReady(line) || !/^\+?[0-9]{6,16}$/.test(to)) {
+      return res.end('<?xml version="1.0" encoding="UTF-8"?><Response><Reject/></Response>');
+    }
+    return res.end(`<?xml version="1.0" encoding="UTF-8"?><Response><Dial callerId="${line.from}" answerOnBridge="true"><Number>${to}</Number></Dial></Response>`);
+  }
+
   if (path === '/read') {
     return readPage(res, url.searchParams.get('url') || '');
+  }
+
+  if (path === '/frame') {
+    return framedPage(res, url.searchParams.get('url') || '');
+  }
+
+  if (path === '/search') {
+    return searchResults(res, url.searchParams.get('q') || '');
   }
 
   if (path === '/img') {
