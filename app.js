@@ -201,5 +201,37 @@ if (savedWallpaper) document.documentElement.dataset.wallpaper = savedWallpaper;
 
 tick();
 setInterval(tick, 1000);
-const bootApp = new URLSearchParams(window.location.search).get('app');
-openApp(bootApp && apps[bootApp] ? bootApp : 'browser');
+
+/* ---------- lock screen ---------- */
+const lockEl = document.getElementById('lockscreen');
+const lockForm = document.getElementById('lock-signin');
+const lockPassword = document.getElementById('lock-password');
+const lockTimeEl = document.getElementById('lock-time');
+const lockDateEl = document.getElementById('lock-date');
+
+function bootDesktop() {
+  const bootApp = new URLSearchParams(window.location.search).get('app');
+  openApp(bootApp && apps[bootApp] ? bootApp : 'browser');
+}
+
+function lockTick() {
+  const now = new Date();
+  lockTimeEl.textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  lockDateEl.textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+function signIn() {
+  lockEl.classList.add('is-unlocking');
+  lockPassword.blur();
+  window.setTimeout(() => { lockEl.hidden = true; }, 420);
+  bootDesktop();
+}
+
+lockForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  signIn();
+});
+
+lockTick();
+setInterval(lockTick, 1000);
+lockPassword.focus();

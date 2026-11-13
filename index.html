@@ -9,6 +9,25 @@
 <link rel="stylesheet" href="./logos.css">
 </head>
 <body>
+  <div class="lockscreen" id="lockscreen">
+    <div class="lock-content">
+      <div class="lock-clock">
+        <span class="lock-time" id="lock-time">--:--</span>
+        <span class="lock-date" id="lock-date"></span>
+      </div>
+
+      <form class="lock-signin" id="lock-signin">
+        <span class="lock-avatar" aria-hidden="true">A</span>
+        <span class="lock-name">Angel</span>
+        <label class="lock-field">
+          <input id="lock-password" type="password" placeholder="Password" aria-label="Password" autocomplete="off">
+          <button class="lock-go" type="submit" aria-label="Sign in">&#8594;</button>
+        </label>
+        <p class="lock-hint">Fake sign-in — any password unlocks the desktop</p>
+      </form>
+    </div>
+  </div>
+
   <div class="desktop">
     <div class="wallpaper" aria-hidden="true">
       <span class="bloom bloom-a"></span>

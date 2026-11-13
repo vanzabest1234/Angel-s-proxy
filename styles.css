@@ -1144,3 +1144,124 @@ html[data-wallpaper="mint"] .bloom-c { background: radial-gradient(circle at 50%
 /* Pinned-app icons in the Start menu */
 .pin .tile { transition: transform 140ms ease; }
 .pin:hover .tile { transform: scale(1.07); }
+
+/* ---------- lock screen ---------- */
+.lockscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(120% 100% at 50% 118%, #12315d 0%, #0a1730 42%, #050a15 100%);
+  color: var(--ink);
+  transition: opacity 420ms ease, filter 420ms ease;
+}
+
+.lockscreen[hidden] { display: none; }
+
+.lockscreen::before,
+.lockscreen::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.lockscreen::before {
+  width: 60vmax; height: 60vmax; left: -18vmax; top: -28vmax;
+  background: radial-gradient(circle, rgba(76, 194, 255, 0.26), transparent 65%);
+}
+
+.lockscreen::after {
+  width: 52vmax; height: 52vmax; right: -16vmax; bottom: -24vmax;
+  background: radial-gradient(circle, rgba(255, 59, 77, 0.2), transparent 68%);
+}
+
+.lockscreen.is-unlocking { opacity: 0; filter: blur(6px); pointer-events: none; }
+
+.lock-content {
+  position: relative;
+  width: min(360px, calc(100vw - 40px));
+  margin-top: 8vh;
+  display: grid;
+  justify-items: center;
+  gap: 30px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.lock-clock { display: grid; gap: 2px; }
+
+.lock-time {
+  font-size: clamp(46px, 9vw, 72px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.lock-date { font-size: 15px; color: var(--muted); }
+
+.lock-signin { width: 100%; display: grid; justify-items: center; gap: 11px; }
+
+.lock-avatar {
+  width: 74px; height: 74px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 28px; font-weight: 600;
+  background: linear-gradient(145deg, #7fd3ff, #1d6cb8);
+  color: #04121f;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.lock-name { font-size: 19px; font-weight: 600; }
+
+.lock-field { position: relative; width: 100%; display: flex; align-items: center; }
+
+.lock-field input {
+  width: 100%;
+  height: 40px;
+  padding: 0 46px 0 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom: 2px solid rgba(76, 194, 255, 0.75);
+  background: rgba(12, 20, 34, 0.72);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.lock-field input::placeholder { color: var(--muted); }
+
+.lock-field input:focus {
+  outline: none;
+  border-color: rgba(76, 194, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(76, 194, 255, 0.18);
+}
+
+.lock-go {
+  position: absolute;
+  right: 5px;
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%;
+  background: rgba(76, 194, 255, 0.16);
+  color: var(--ink);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.lock-go:hover { background: rgba(76, 194, 255, 0.34); }
+
+.lock-hint { margin: 0; font-size: 11.5px; color: rgba(166, 173, 187, 0.75); }
+
+@media (max-width: 700px) {
+  .lock-content { margin-top: 0; gap: 22px; }
+  .lock-avatar { width: 62px; height: 62px; font-size: 23px; }
+  .lock-date { font-size: 13.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lockscreen { transition: none; }
+}
