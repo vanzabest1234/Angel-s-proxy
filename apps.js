@@ -4,8 +4,6 @@ import { weather } from './apps/weather.js';
 import { terminal } from './apps/terminal.js';
 import { mzk } from './apps/mzk.js';
 import { mygames } from './apps/mygames.js';
-import { phone } from './apps/phone.js';
-import { spotify } from './apps/spotify.js';
 import { github } from './apps/github.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -385,7 +383,6 @@ export const apps = {
   },
   mygames,
   mzk,
-  spotify,
   github,
   notes: {
     name: 'Notes',
@@ -404,7 +401,6 @@ export const apps = {
   calculator,
   calendar,
   weather,
-  phone,
   terminal,
   store: {
     name: 'Store',
