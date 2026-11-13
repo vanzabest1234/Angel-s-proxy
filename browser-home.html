@@ -7,79 +7,105 @@
 <style>
   :root {
     --accent: #ff3b4d;
-    --ink: #f7ecee;
-    --muted: #bda9ad;
-    --faint: #8d6b70;
+    --ink: #f4ecee;
+    --muted: #b3a1a6;
+    --faint: #7f656b;
+    --tile: rgba(255, 255, 255, 0.05);
+    --tile-border: rgba(255, 255, 255, 0.08);
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
     margin: 0;
-    padding: 28px 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 22px;
-    background: radial-gradient(120% 90% at 50% 0%, #2b070c 0%, #0b0507 48%, #000 100%);
+    padding: 24px;
+    background: radial-gradient(115% 80% at 50% -10%, #38080f 0%, #15070a 45%, #060304 100%);
     color: var(--ink);
     font: 14px/1.5 "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { width: min(520px, 100%); margin: 0 auto; display: grid; gap: 18px; }
-  .brand { display: flex; align-items: center; gap: 12px; }
-  .mark { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(140deg, #ff3b4d, #8a0d1a); box-shadow: 0 0 18px rgba(255, 59, 77, 0.45); flex: 0 0 auto; }
-  h1 { margin: 0; font-size: clamp(22px, 4.4vw, 27px); font-weight: 700; letter-spacing: -0.025em; color: #fff; }
-  h1 span { color: var(--accent); }
-  .sub { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
-  form { display: flex; gap: 8px; }
+
+  .page { width: min(660px, 100%); margin: 0 auto; display: grid; gap: 26px; }
+
+  /* brand strip */
+  .brand { display: flex; align-items: center; justify-content: center; gap: 9px; }
+  .mark {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: linear-gradient(145deg, #ff4d5d, #9c0f1d);
+    box-shadow: 0 0 14px rgba(255, 59, 77, 0.55);
+  }
+  .word { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #d9c4c8; }
+  .word span { color: var(--accent); }
+
+  /* search */
+  .search {
+    display: flex; align-items: center; gap: 10px;
+    height: 52px; padding: 0 8px 0 18px;
+    border-radius: 999px;
+    background: rgba(20, 10, 13, 0.92);
+    border: 1px solid rgba(255, 59, 77, 0.28);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .search:focus-within { border-color: var(--accent); box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55), 0 0 0 3px rgba(255, 59, 77, 0.18); }
+  .search svg { flex: 0 0 auto; width: 18px; height: 18px; color: var(--faint); }
   input {
-    flex: 1; min-width: 0; height: 42px; padding: 0 14px;
-    border-radius: 10px; border: 1px solid rgba(255, 59, 77, 0.35);
-    background: #140b0e; color: var(--ink); font: inherit;
+    flex: 1; min-width: 0; height: 100%;
+    border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 14.5px;
   }
-  input::placeholder { color: #9a7f84; }
-  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255, 59, 77, 0.2); }
-  button {
-    height: 42px; padding: 0 18px; border: 0; border-radius: 10px; cursor: pointer;
-    background: linear-gradient(140deg, #ff3b4d, #c8142a); color: #fff; font: inherit; font-weight: 600;
+  input::placeholder { color: #8f767b; }
+  input:focus { outline: none; }
+  .go {
+    flex: 0 0 auto; height: 38px; padding: 0 16px; border: 0; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(140deg, #ff4b5b, #c0142a); color: #fff; font: inherit; font-weight: 600; font-size: 13px;
   }
-  button:hover { filter: brightness(1.1); }
-  .links { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+  .go:hover { filter: brightness(1.1); }
+
+  /* shortcuts */
+  .shortcuts { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 12px; }
   .link {
-    display: block; padding: 12px 10px; text-align: center; text-decoration: none;
-    border-radius: 10px; border: 1px solid rgba(255, 59, 77, 0.22); background: #150a0e;
-    color: var(--ink); font-size: 12.5px;
+    display: grid; justify-items: center; gap: 8px; padding: 12px 6px 10px;
+    border-radius: 14px; text-decoration: none; color: var(--muted); font-size: 11.5px;
+    transition: background 0.18s ease, color 0.18s ease;
   }
-  .link:hover { background: #221016; border-color: rgba(255, 59, 77, 0.45); color: #fff; }
+  .link:hover, .link:focus-visible { background: rgba(255, 255, 255, 0.06); color: #fff; outline: none; }
+  .tile {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--tile); border: 1px solid var(--tile-border);
+    font-size: 16px; font-weight: 700; letter-spacing: 0.02em;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+  .link:hover .tile { transform: translateY(-2px); border-color: rgba(255, 59, 77, 0.55); }
+
   .note { margin: 0; text-align: center; font-size: 11.5px; color: var(--faint); }
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <main class="page">
     <div class="brand">
       <span class="mark" aria-hidden="true"></span>
-      <div>
-        <h1>Ather's <span>Legendary Proxy</span></h1>
-        <p class="sub">Your own black and red browser</p>
-      </div>
+      <span class="word">Ather's <span>Legendary Proxy</span></span>
     </div>
 
-    <form id="search" role="search">
+    <form class="search" id="search" role="search">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.4" fill="none" stroke="currentColor" stroke-width="1.9"/><line x1="12.8" y1="12.8" x2="17" y2="17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
       <input id="q" type="text" placeholder="Search DuckDuckGo or enter a URL" aria-label="Search DuckDuckGo or enter a URL" autocomplete="off" spellcheck="false" autofocus>
-      <button type="submit">Go</button>
+      <button class="go" type="submit">Go</button>
     </form>
 
-    <nav class="links" aria-label="Quick links">
-      <a class="link" href="https://duckduckgo.com/">DuckDuckGo</a>
-      <a class="link" href="https://www.youtube.com/">YouTube</a>
-      <a class="link" href="https://en.wikipedia.org/">Wikipedia</a>
-      <a class="link" href="https://github.com/">GitHub</a>
-      <a class="link" href="https://www.reddit.com/">Reddit</a>
-      <a class="link" href="https://www.twitch.tv/">Twitch</a>
+    <nav class="shortcuts" aria-label="Shortcuts">
+      <a class="link" href="https://duckduckgo.com/"><span class="tile" style="color:#ff8a5c">D</span>DuckDuckGo</a>
+      <a class="link" href="https://www.youtube.com/"><span class="tile" style="color:#ff5a6b">Y</span>YouTube</a>
+      <a class="link" href="https://en.wikipedia.org/"><span class="tile" style="color:#e7e9ee">W</span>Wikipedia</a>
+      <a class="link" href="https://github.com/"><span class="tile" style="color:#e7e9ee">G</span>GitHub</a>
+      <a class="link" href="https://www.reddit.com/"><span class="tile" style="color:#ff7a45">R</span>Reddit</a>
+      <a class="link" href="https://www.twitch.tv/"><span class="tile" style="color:#b48cff">T</span>Twitch</a>
     </nav>
 
-    <p class="note">Searches and links open inside this window, through the proxy.</p>
-  </div>
+    <p class="note">Searches and shortcuts open inside this window, through the proxy.</p>
+  </main>
 
 <script>
   /* Ask the desktop window to load pages, so links stay inside the proxy view. */
