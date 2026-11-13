@@ -151,7 +151,8 @@ function renderBrowser(body) {
     const src = direct ? url : `/frame?url=${encodeURIComponent(url)}`;
     view.innerHTML = `
       <iframe class="proxy-frame" title="${attr(hostOf(url))}" src="${attr(src)}"
-        referrerpolicy="no-referrer"></iframe>`;
+        referrerpolicy="no-referrer"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-downloads"></iframe>`;
   };
 
   window.addEventListener('message', (event) => {
